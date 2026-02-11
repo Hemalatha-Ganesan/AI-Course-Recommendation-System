@@ -9,7 +9,7 @@ import { FaStar, FaClock, FaUsers, FaBook } from 'react-icons/fa';
 const CourseDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useContext(UserContext);
+  const {isAuthenticated } = useContext(UserContext);
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);

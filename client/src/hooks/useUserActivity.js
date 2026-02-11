@@ -1,47 +1,53 @@
-import { useState, useEffect, useContext } from 'react';
+// src/hooks/useUserActivity.js
+import { useContext, useCallback } from 'react';
 import { UserContext } from '../contexts/UserContext';
-import { userAPI } from '../api/api';
+import API from '../api/api';
 
-const useUserActivity = (courseId, activityType = 'view') => {
+const useUserActivity = () => {
   const { user } = useContext(UserContext);
-  const [startTime] = useState(Date.now());
 
-  useEffect(() => {
-    if (!user || !courseId) return;
+  const trackActivity = useCallback(async (activityType, courseId = null, metadata = {}) => {
+    if (!user) return;
 
-    // Track activity when component mounts
-    const trackActivity = async () => {
-      try {
-        await userAPI.trackActivity({
-          courseId,
-          activityType,
-          timestamp: new Date()
-        });
-      } catch (error) {
-        console.error('Failed to track activity:', error);
-      }
-    };
+    try {
+      await API.post('/user-activity', {
+        activityType,
+        courseId,
+        metadata
+      });
+    } catch (error) {
+      console.error('Error tracking activity:', error);
+    }
+  }, [user]);
 
-    trackActivity();
+  const trackCourseView = useCallback((courseId) => {
+    trackActivity('view', courseId);
+  }, [trackActivity]);
 
-    // Track time spent when component unmounts
-    return () => {
-      const timeSpent = Math.floor((Date.now() - startTime) / 1000); // in seconds
-      
-      if (timeSpent > 5) { // Only track if spent more than 5 seconds
-        userAPI.trackActivity({
-          courseId,
-          activityType: 'time_spent',
-          duration: timeSpent,
-          timestamp: new Date()
-        }).catch(error => {
-          console.error('Failed to track time spent:', error);
-        });
-      }
-    };
-  }, [user, courseId, activityType, startTime]);
+  const trackEnrollment = useCallback((courseId) => {
+    trackActivity('enroll', courseId);
+  }, [trackActivity]);
 
-  return null;
+  const trackRating = useCallback((courseId, rating) => {
+    trackActivity('rate', courseId, { rating });
+  }, [trackActivity]);
+
+  const trackSearch = useCallback((searchTerm) => {
+    trackActivity('search', null, { searchTerm });
+  }, [trackActivity]);
+
+  const trackFilter = useCallback((filters) => {
+    trackActivity('filter', null, { filters });
+  }, [trackActivity]);
+
+  return {
+    trackActivity,
+    trackCourseView,
+    trackEnrollment,
+    trackRating,
+    trackSearch,
+    trackFilter
+  };
 };
 
 export default useUserActivity;

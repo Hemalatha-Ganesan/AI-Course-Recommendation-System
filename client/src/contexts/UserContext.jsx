@@ -6,89 +6,73 @@ export const UserContext = createContext();
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem('token'));
 
-  // Load user data on mount
+  // Check user on refresh
   useEffect(() => {
-    const loadUser = async () => {
-      if (token) {
-        try {
-          const response = await authAPI.getProfile();
-          setUser(response.data.user);
-        } catch (error) {
-          console.error('Failed to load user:', error);
-          localStorage.removeItem('token');
-          setToken(null);
-        }
-      }
-      setLoading(false);
-    };
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
 
-    loadUser();
-  }, [token]);
+    if (token && userData) {
+      setUser(JSON.parse(userData));
+    }
 
-  // Login function
-  const login = async (credentials) => {
+    setLoading(false);
+  }, []);
+
+  // ✅ REGISTER
+  const register = async (username, email, password) => {
     try {
-      const response = await authAPI.login(credentials);
+      const response = await authAPI.register(username, email, password);
+
       const { token, user } = response.data;
-      
+
       localStorage.setItem('token', token);
-      setToken(token);
+      localStorage.setItem('user', JSON.stringify(user));
+
       setUser(user);
-      
-      return { success: true, data: response.data };
+
+      return response.data;
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Login failed' 
-      };
+      throw error;
     }
   };
 
-  // Register function
-  const register = async (userData) => {
+  // ✅ LOGIN
+  const login = async (email, password) => {
     try {
-      const response = await authAPI.register(userData);
+      const response = await authAPI.login(email, password);
+
       const { token, user } = response.data;
-      
+
       localStorage.setItem('token', token);
-      setToken(token);
+      localStorage.setItem('user', JSON.stringify(user));
+
       setUser(user);
-      
-      return { success: true, data: response.data };
+
+      return response.data;
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Registration failed' 
-      };
+      throw error;
     }
   };
 
-  // Logout function
+  // ✅ LOGOUT
   const logout = () => {
     localStorage.removeItem('token');
-    setToken(null);
+    localStorage.removeItem('user');
     setUser(null);
   };
 
-  // Update user data
-  const updateUser = (updatedData) => {
-    setUser({ ...user, ...updatedData });
-  };
-
-  const value = {
-    user,
-    loading,
-    isAuthenticated: !!user,
-    login,
-    register,
-    logout,
-    updateUser
-  };
-
   return (
-    <UserContext.Provider value={value}>
+    <UserContext.Provider
+      value={{
+        user,
+        loading,
+        register,
+        login,
+        logout,
+        isAuthenticated: !!user,
+      }}
+    >
       {children}
     </UserContext.Provider>
   );

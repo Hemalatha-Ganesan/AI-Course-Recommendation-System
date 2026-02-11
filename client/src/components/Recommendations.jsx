@@ -1,64 +1,53 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { recommendationAPI } from '../api/api';
+import React, { useEffect, useState, useContext } from 'react';
+import { courseAPI } from '../api/api';
 import { UserContext } from '../contexts/UserContext';
-import CourseCard from './CourseCard';
-import Loader from './Loader';
-
+import { Link } from 'react-router-dom';
 
 const Recommendations = () => {
   const { user } = useContext(UserContext);
-  const [recommendations, setRecommendations] = useState([]);
+  const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchRecommendations = async () => {
-      if (!user) return;
-
+    const fetchCourses = async () => {
       try {
-        setLoading(true);
-        const response = await recommendationAPI.getPersonalizedRecommendations();
-        setRecommendations(response.data.recommendations || []);
+        const res = await courseAPI.getAllCourses();
+        setCourses(res.data.courses || []);
       } catch (err) {
-        console.error('Failed to fetch recommendations:', err);
-        setError('Failed to load recommendations. Please try again later.');
+        console.error('Error fetching courses:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchRecommendations();
+    if (user) fetchCourses();
   }, [user]);
 
-  if (loading) {
-    return <Loader />;
-  }
-
-  if (error) {
-    return (
-      <div className="recommendations-error">
-        <p>{error}</p>
-      </div>
-    );
-  }
-
-  if (recommendations.length === 0) {
-    return (
-      <div className="recommendations-empty">
-        <h3>No recommendations yet</h3>
-        <p>Start exploring courses to get personalized recommendations!</p>
-      </div>
-    );
-  }
+  if (loading) return <p>Loading recommendations...</p>;
 
   return (
-    <div className="recommendations-container">
-      <h2 className="recommendations-title">Recommended For You</h2>
-      <div className="recommendations-grid">
-        {recommendations.map((course) => (
-          <CourseCard key={course._id} course={course} />
-        ))}
-      </div>
+    <div style={{ marginTop: '30px' }}>
+      <h2>Recommended Courses</h2>
+
+      {courses.length === 0 ? (
+        <p>No courses found.</p>
+      ) : (
+        courses.slice(0, 4).map((course) => (
+          <div
+            key={course._id}
+            style={{
+              border: '1px solid #ddd',
+              padding: '12px',
+              margin: '10px 0',
+              borderRadius: '6px',
+            }}
+          >
+            <h3>{course.title}</h3>
+            <p>{course.description}</p>
+            <Link to={`/courses/${course._id}`}>View Course</Link>
+          </div>
+        ))
+      )}
     </div>
   );
 };

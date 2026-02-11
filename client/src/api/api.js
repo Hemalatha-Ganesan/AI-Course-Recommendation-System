@@ -1,75 +1,76 @@
+// src/api/api.js
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-// Create axios instance
-const api = axios.create({
+console.log('✅ API Base URL:', API_URL);
+
+const API = axios.create({
   baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json',
+  },
 });
 
-// Request interceptor to add token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
+// Attach token to every request
+API.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  console.log(`➡️ ${config.method.toUpperCase()} ${config.baseURL}${config.url}`);
+  return config;
+});
+
+// Global response handler
+API.interceptors.response.use(
+  (response) => {
+    console.log('✅ Response:', response.data);
+    return response;
   },
   (error) => {
+    console.error('❌ API Error:', error.response?.data || error.message);
     return Promise.reject(error);
   }
 );
 
-// Response interceptor for error handling
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
-
-// Auth APIs
+//
+// 🔐 AUTH API
+//
 export const authAPI = {
-  register: (userData) => api.post('/auth/register', userData),
-  login: (credentials) => api.post('/auth/login', credentials),
-  getProfile: () => api.get('/auth/profile'),
+  register: (username, email, password) => {
+    return API.post('/auth/register', {
+      username,   // ✅ correct field
+      email,
+      password,
+    });
+  },
+
+  login: (email, password) => {
+    return API.post('/auth/login', { email, password });
+  },
+
+  getMe: () => {
+    return API.get('/auth/me'); // ✅ correct route
+  },
 };
 
-// Course APIs
+//
+// 📚 COURSE API
+//
 export const courseAPI = {
-  getAllCourses: (params) => api.get('/courses', { params }),
-  getCourseById: (id) => api.get(`/courses/${id}`),
-  searchCourses: (query) => api.get(`/courses/search?q=${query}`),
-  enrollCourse: (courseId) => api.post(`/courses/${courseId}/enroll`),
-  getEnrolledCourses: () => api.get('/courses/enrolled'),
+  getCourses: () => API.get('/courses'),
+
+  getCourseById: (id) => API.get(`/courses/${id}`),
+
+  enrollCourse: (courseId) =>
+    API.post('/enrollments', { courseId }),
+
+  getEnrolledCourses: () =>
+    API.get('/enrollments/my-courses'),
+
+  rateCourse: (courseId, rating, review) =>
+    API.post('/ratings', { courseId, rating, review }),
 };
 
-// Recommendation APIs
-export const recommendationAPI = {
-  getRecommendations: (userId) => api.get(`/recommendations/${userId}`),
-  getPersonalizedRecommendations: () => api.get('/recommendations/personalized'),
-};
-
-// User APIs
-export const userAPI = {
-  updateProfile: (userData) => api.put('/users/profile', userData),
-  updatePreferences: (preferences) => api.put('/users/preferences', preferences),
-  getUserActivity: () => api.get('/users/activity'),
-  trackActivity: (activityData) => api.post('/users/activity', activityData),
-};
-
-// Rating APIs
-export const ratingAPI = {
-  rateCourse: (courseId, rating) => api.post(`/ratings/${courseId}`, { rating }),
-  getCourseRatings: (courseId) => api.get(`/ratings/${courseId}`),
-};
-
-export default api;
+export default API;
