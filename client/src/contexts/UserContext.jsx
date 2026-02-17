@@ -1,79 +1,62 @@
-import React, { createContext, useState, useEffect } from 'react';
-import { authAPI } from '../api/api';
+import React, { createContext, useState, useEffect, useContext } from 'react';
+import axios from 'axios';
 
 export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(
+    JSON.parse(localStorage.getItem('user')) || null
+  );
 
-  // Check user on refresh
+  const [token, setToken] = useState(
+    localStorage.getItem('token') || null
+  );
+
+  // Attach token to axios headers
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-
-    if (token && userData) {
-      setUser(JSON.parse(userData));
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } else {
+      delete axios.defaults.headers.common['Authorization'];
     }
+  }, [token]);
 
-    setLoading(false);
-  }, []);
-
-  // ✅ REGISTER
-  const register = async (username, email, password) => {
-    try {
-      const response = await authAPI.register(username, email, password);
-
-      const { token, user } = response.data;
-
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-
-      setUser(user);
-
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  // ✅ LOGIN
+  // 🔥 LOGIN FUNCTION
   const login = async (email, password) => {
-    try {
-      const response = await authAPI.login(email, password);
+    const response = await axios.post('/api/auth/login', {
+      email,
+      password
+    });
 
-      const { token, user } = response.data;
+    const loggedInUser = response.data.user;
 
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+    setUser(loggedInUser);
+    setToken(response.data.token);
 
-      setUser(user);
+    localStorage.setItem('user', JSON.stringify(loggedInUser));
+    localStorage.setItem('token', response.data.token);
 
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    console.log("Logged user:", loggedInUser); // ✅ now inside function
+
+    return loggedInUser;
   };
 
-  // ✅ LOGOUT
+  // 🔥 LOGOUT FUNCTION
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
     setUser(null);
+    setToken(null);
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
   };
 
   return (
-    <UserContext.Provider
-      value={{
-        user,
-        loading,
-        register,
-        login,
-        logout,
-        isAuthenticated: !!user,
-      }}
-    >
+    <UserContext.Provider value={{ user, token, login, logout }}>
       {children}
     </UserContext.Provider>
   );
+};
+
+// ✅ Custom Hook (Fixes AdminRoute error)
+export const useUser = () => {
+  return useContext(UserContext);
 };

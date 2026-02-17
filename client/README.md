@@ -6,7 +6,8 @@ The AI Course Recommendation System is a web-based application that provides **p
 
 This project integrates the **MERN stack** with a **Machine Learning recommendation engine** to deliver intelligent course recommendations instead of showing generic course lists to all users.
 
----
+
+
 
 ## 🛠️ Tech Stack Used
 

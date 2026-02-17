@@ -91,25 +91,41 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  username: String,
-  email: String,
+  username: {
+    type: String,
+    required: true
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true
+  },
   password: {
     type: String,
-    select: false
+    required: true,
+    select: false   // 🔥 IMPORTANT
   },
-  profile: {
-    type: Object,
-    default: {}
+  role: {
+    type: String,
+    enum: ['student', 'admin'],
+    default: 'student'
   }
 }, { timestamps: true });
 
+
+// 🔥 HASH PASSWORD BEFORE SAVE
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) next();
-  this.password = await bcrypt.hash(this.password, 10);
+  if (!this.isModified('password')) return next();
+
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
 });
 
-userSchema.methods.comparePassword = async function (entered) {
-  return await bcrypt.compare(entered, this.password);
+
+// 🔥 COMPARE PASSWORD METHOD
+userSchema.methods.comparePassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
 };
 
 module.exports = mongoose.model('User', userSchema);
