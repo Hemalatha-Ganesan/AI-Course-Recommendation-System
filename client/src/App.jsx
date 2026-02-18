@@ -11,6 +11,7 @@ import AdminRoute from './components/AdminRoute';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
+import UserProfile from './pages/UserProfile';
 import Courses from './pages/Courses';
 import CourseDetails from './pages/CourseDetails';
 
@@ -22,25 +23,54 @@ function App() {
     <UserProvider>
       <Router>
         <Routes>
-          {/* PUBLIC ROUTES - User Interface with Navbar & Footer */}
-          <Route path="/login" element={<><Navbar /><Login /><Footer /></>} />
-          <Route path="/signup" element={<><Navbar /><Signup /><Footer /></>} />
-          <Route path="/dashboard" element={<><Navbar /><Dashboard /><Footer /></>} />
-          <Route path="/courses" element={<><Navbar /><Courses /><Footer /></>} />
-          <Route path="/courses/:id" element={<><Navbar /><CourseDetails /><Footer /></>} />
 
-          {/* ADMIN ROUTES - Completely Separate Interface (No Navbar/Footer) */}
-          <Route
-            path="/admin"
-            element={
-              <AdminRoute>
-                <AdminDashboard />
-              </AdminRoute>
-            }
-          />
+          {/* ── AUTH ROUTES: NO Navbar/Footer — needs full screen ── */}
+          <Route path="/login"  element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
 
-          {/* Default Route */}
-          <Route path="/" element={<Navigate to="/dashboard" />} />
+          {/* ── USER ROUTES: With Navbar + main + Footer ── */}
+          <Route path="/dashboard" element={
+            <div className="App">
+              <Navbar />
+              <main><Dashboard /></main>
+              <Footer />
+            </div>
+          } />
+
+          <Route path="/profile" element={
+            <div className="App">
+              <Navbar />
+              <main><UserProfile /></main>
+              <Footer />
+            </div>
+          } />
+
+          <Route path="/courses" element={
+            <div className="App">
+              <Navbar />
+              <main><Courses /></main>
+              <Footer />
+            </div>
+          } />
+
+          <Route path="/courses/:id" element={
+            <div className="App">
+              <Navbar />
+              <main><CourseDetails /></main>
+              <Footer />
+            </div>
+          } />
+
+          {/* ── ADMIN ROUTES: Completely separate ── */}
+          <Route path="/admin" element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          } />
+
+          {/* Default */}
+          <Route path="/" element={<Navigate to="/login" />} />
+
         </Routes>
       </Router>
     </UserProvider>

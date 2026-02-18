@@ -15,4 +15,10 @@ router.delete('/users/:id', protect, isAdmin, adminController.deleteUser);
 // 🔒 Get admin stats
 router.get('/stats', protect, isAdmin, adminController.getAdminStats);
 
+// 🔒 Get recent history
+router.get('/history', protect, isAdmin, adminController.getRecentHistory);
+
+// 🔒 Get all courses
+router.get('/courses', protect, isAdmin, adminController.getAllCourses);
+
 module.exports = router;

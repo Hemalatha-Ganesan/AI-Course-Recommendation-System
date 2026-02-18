@@ -1,55 +1,161 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { adminAPI } from '../../api/api';
+import { useUser } from '../../contexts/UserContext';
 
 const AdminDashboard = () => {
+  const { user } = useUser();
   const [activeTab, setActiveTab] = useState('overview');
-  const [stats] = useState({
-    totalUsers: 12847,
-    activeCourses: 234,
-    totalRevenue: 482950,
-    enrollments: 8943
-  });
-  
-  const [users] = useState([
-    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Student', status: 'Active', joined: '2024-01-15' },
-    { id: 2, name: 'Sarah Smith', email: 'sarah@example.com', role: 'Instructor', status: 'Active', joined: '2024-01-10' },
-    { id: 3, name: 'Mike Johnson', email: 'mike@example.com', role: 'Student', status: 'Inactive', joined: '2024-01-20' },
-    { id: 4, name: 'Emily Brown', email: 'emily@example.com', role: 'Student', status: 'Active', joined: '2024-01-25' },
-    { id: 5, name: 'David Lee', email: 'david@example.com', role: 'Instructor', status: 'Active', joined: '2024-01-12' }
-  ]);
-
-  const [courses] = useState([
-    { id: 1, title: 'Machine Learning Fundamentals', instructor: 'Sarah Smith', students: 1234, rating: 4.8, status: 'Active', revenue: 49300 },
-    { id: 2, title: 'Web Development Bootcamp', instructor: 'David Lee', students: 2341, rating: 4.9, status: 'Active', revenue: 93640 },
-    { id: 3, title: 'Data Science with Python', instructor: 'Sarah Smith', students: 987, rating: 4.7, status: 'Active', revenue: 39480 },
-    { id: 4, title: 'Mobile App Development', instructor: 'David Lee', students: 756, rating: 4.6, status: 'Draft', revenue: 0 }
-  ]);
-
+  const [loading, setLoading] = useState(true);
+  const [showAddCourse, setShowAddCourse] = useState(false);
+  const [showAddUser, setShowAddUser] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const StatCard = ({ title, value, change, icon, color }) => (
-    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <p className="text-gray-600 text-sm font-medium mb-2">{title}</p>
-          <h3 className="text-3xl font-bold text-gray-900 mb-2">{value}</h3>
-          <div className="flex items-center gap-2">
-            <span className={`text-sm font-semibold ${change >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-              {change >= 0 ? '↑' : '↓'} {Math.abs(change)}%
-            </span>
-            <span className="text-gray-500 text-xs">vs last month</span>
-          </div>
-        </div>
-        <div className={`w-14 h-14 rounded-2xl ${color} bg-opacity-10 flex items-center justify-center`}>
-          <span className="text-2xl">{icon}</span>
-        </div>
-      </div>
-    </div>
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalCourses: 0,
+    activeCourses: 0,
+    totalEnrollments: 0,
+  });
+
+  const [users, setUsers] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  const [newCourse, setNewCourse] = useState({
+    title: '',
+    description: '',
+    category: '',
+    price: 0,
+  });
+
+  const [newUser, setNewUser] = useState({
+    username: '',
+    email: '',
+    password: '',
+    role: 'student',
+  });
+
+  // Fetch dashboard data
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      try {
+        // Fetch stats
+        const statsResponse = await adminAPI.getStats();
+        if (statsResponse.data.success) {
+          setStats(statsResponse.data.data);
+        }
+
+        // Fetch users
+        const usersResponse = await adminAPI.getAllUsers();
+        if (usersResponse.data.success) {
+          setUsers(usersResponse.data.data);
+        }
+
+        // Fetch courses
+        const coursesResponse = await adminAPI.getAllCourses();
+        if (coursesResponse.data.success) {
+          setCourses(coursesResponse.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  // Mock data for user performance stats
+  const userStats = users.map((u, idx) => ({
+    ...u,
+    timeSpent: Math.floor(Math.random() * 100) + 10,
+    rating: (Math.random() * 5).toFixed(1),
+    coursesCompleted: Math.floor(Math.random() * 5),
+    enrolledCourses: Math.floor(Math.random() * 8) + 1,
+  }));
+
+  const handleAddCourse = async () => {
+    if (newCourse.title && newCourse.description) {
+      try {
+        const response = await adminAPI.createCourse(newCourse);
+        if (response.data.success) {
+          setCourses([...courses, response.data.data]);
+          setNewCourse({ title: '', description: '', category: '', price: 0 });
+          setShowAddCourse(false);
+        }
+      } catch (error) {
+        console.error('Error adding course:', error);
+      }
+    }
+  };
+
+  const handleDeleteCourse = async (courseId) => {
+    try {
+      await adminAPI.deleteCourse(courseId);
+      setCourses(courses.filter(c => c._id !== courseId));
+    } catch (error) {
+      console.error('Error deleting course:', error);
+    }
+  };
+
+  const handleAddUser = async () => {
+    if (newUser.username && newUser.email && newUser.password) {
+      try {
+        const response = await adminAPI.createUser(newUser);
+        if (response.data.success) {
+          setUsers([...users, response.data.data]);
+          setNewUser({ username: '', email: '', password: '', role: 'student' });
+          setShowAddUser(false);
+        }
+      } catch (error) {
+        console.error('Error adding user:', error);
+      }
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    try {
+      await adminAPI.deleteUser(userId);
+      setUsers(users.filter(u => u._id !== userId));
+    } catch (error) {
+      console.error('Error deleting user:', error);
+    }
+  };
+
+  const filteredUsers = userStats.filter(u =>
+    (u.username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (u.email || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Format date helper
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+    
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+
+
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
@@ -64,12 +170,10 @@ const AdminDashboard = () => {
 
         <nav className="p-4 space-y-1">
           {[
-            { id: 'overview', label: 'Overview', icon: '📊' },
+            { id: 'overview', label: 'Dashboard', icon: '📊' },
             { id: 'users', label: 'User Management', icon: '👥' },
             { id: 'courses', label: 'Course Management', icon: '📚' },
             { id: 'analytics', label: 'Analytics', icon: '📈' },
-            { id: 'payments', label: 'Payments', icon: '💳' },
-            { id: 'settings', label: 'Settings', icon: '⚙️' }
           ].map(tab => (
             <button
               key={tab.id}
@@ -89,11 +193,11 @@ const AdminDashboard = () => {
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
           <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white font-semibold">
-              AD
+              {user?.username ? user.username.charAt(0).toUpperCase() : 'AD'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-gray-900 text-sm truncate">Admin User</p>
-              <p className="text-xs text-gray-500 truncate">admin@courseai.com</p>
+              <p className="font-semibold text-gray-900 text-sm truncate">{user?.username || 'Admin User'}</p>
+              <p className="text-xs text-gray-500 truncate">{user?.email || 'admin@courseai.com'}</p>
             </div>
           </div>
         </div>
@@ -110,21 +214,22 @@ const AdminDashboard = () => {
                 {activeTab === 'users' && 'User Management'}
                 {activeTab === 'courses' && 'Course Management'}
                 {activeTab === 'analytics' && 'Analytics & Reports'}
-                {activeTab === 'payments' && 'Payment Management'}
-                {activeTab === 'settings' && 'System Settings'}
               </h2>
               <p className="text-gray-600">
-                {activeTab === 'overview' && 'Welcome back! Here\'s what\'s happening with your platform'}
-                {activeTab === 'users' && 'Manage all users, roles, and permissions'}
-                {activeTab === 'courses' && 'Manage courses, content, and instructors'}
-                {activeTab === 'analytics' && 'View detailed analytics and insights'}
-                {activeTab === 'payments' && 'Track revenue and manage transactions'}
-                {activeTab === 'settings' && 'Configure platform settings and preferences'}
+                {activeTab === 'overview' && 'Welcome back! Here\'s your platform overview'}
+                {activeTab === 'users' && `Managing ${users.length} users on the platform`}
+                {activeTab === 'courses' && `Managing ${courses.length} courses`}
+                {activeTab === 'analytics' && 'View detailed platform analytics'}
               </p>
             </div>
-            <button className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
-              + New {activeTab === 'users' ? 'User' : activeTab === 'courses' ? 'Course' : 'Item'}
-            </button>
+            {(activeTab === 'users' || activeTab === 'courses') && (
+              <button
+                onClick={() => activeTab === 'users' ? setShowAddUser(true) : setShowAddCourse(true)}
+                className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
+              >
+                + Add {activeTab === 'users' ? 'User' : 'Course'}
+              </button>
+            )}
           </div>
         </div>
 
@@ -133,68 +238,95 @@ const AdminDashboard = () => {
           <div className="space-y-8">
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <StatCard
-                title="Total Users"
-                value={stats.totalUsers.toLocaleString()}
-                change={12.5}
-                icon="👥"
-                color="text-blue-600"
-              />
-              <StatCard
-                title="Active Courses"
-                value={stats.activeCourses}
-                change={8.3}
-                icon="📚"
-                color="text-purple-600"
-              />
-              <StatCard
-                title="Total Revenue"
-                value={`$${(stats.totalRevenue / 1000).toFixed(1)}K`}
-                change={15.2}
-                icon="💰"
-                color="text-emerald-600"
-              />
-              <StatCard
-                title="Enrollments"
-                value={stats.enrollments.toLocaleString()}
-                change={22.8}
-                icon="🎓"
-                color="text-amber-600"
-              />
+              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-gray-600 text-sm font-medium mb-2">Total Users</p>
+                    <h3 className="text-4xl font-bold text-gray-900">{stats.totalUsers || 0}</h3>
+                    <p className="text-emerald-600 text-sm mt-2">📈 +12% this month</p>
+                  </div>
+                  <span className="text-4xl">👥</span>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-gray-600 text-sm font-medium mb-2">Total Courses</p>
+                    <h3 className="text-4xl font-bold text-gray-900">{stats.totalCourses || 0}</h3>
+                    <p className="text-emerald-600 text-sm mt-2">📚 Active & Listed</p>
+                  </div>
+                  <span className="text-4xl">📚</span>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-gray-600 text-sm font-medium mb-2">Total Enrollments</p>
+                    <h3 className="text-4xl font-bold text-gray-900">{stats.totalEnrollments || 0}</h3>
+                    <p className="text-emerald-600 text-sm mt-2">✅ Course Enrollments</p>
+                  </div>
+                  <span className="text-4xl">📊</span>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-gray-600 text-sm font-medium mb-2">Platform Rating</p>
+                    <h3 className="text-4xl font-bold text-yellow-600">4.8</h3>
+                    <p className="text-yellow-600 text-sm mt-2">⭐ Average Rating</p>
+                  </div>
+                  <span className="text-4xl">⭐</span>
+                </div>
+              </div>
             </div>
 
-            {/* Charts Section */}
+            {/* Quick Actions */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Revenue Chart */}
-              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">Revenue Overview</h3>
-                <div className="h-64 flex items-end justify-between gap-2">
-                  {[65, 78, 90, 45, 88, 76, 95, 82, 70, 85, 92, 88].map((height, index) => (
-                    <div key={index} className="flex-1 flex flex-col items-center gap-2">
-                      <div className="w-full bg-gradient-to-t from-indigo-600 to-purple-600 rounded-t-lg hover:from-indigo-700 hover:to-purple-700 transition-all cursor-pointer" style={{ height: `${height}%` }}></div>
-                      <span className="text-xs text-gray-500">{['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][index]}</span>
+              {/* Recent Users */}
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-6">Recently Joined Users</h3>
+                <div className="space-y-4">
+                  {userStats.slice(0, 5).map((u, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-indigo-50 transition">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
+                          {u.username?.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900">{u.username}</p>
+                          <p className="text-xs text-gray-500">{u.email}</p>
+                        </div>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {u.role === 'admin' ? 'Admin' : 'Student'}
+                      </span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Recent Activity */}
-              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">Recent Activity</h3>
+              {/* Top Courses */}
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-6">Top Performing Courses</h3>
                 <div className="space-y-4">
-                  {[
-                    { user: 'John Doe', action: 'enrolled in Web Development Bootcamp', time: '2 minutes ago', color: 'bg-blue-100 text-blue-600' },
-                    { user: 'Sarah Smith', action: 'published new course', time: '15 minutes ago', color: 'bg-purple-100 text-purple-600' },
-                    { user: 'Mike Johnson', action: 'completed Machine Learning course', time: '1 hour ago', color: 'bg-emerald-100 text-emerald-600' },
-                    { user: 'Emily Brown', action: 'left a 5-star review', time: '2 hours ago', color: 'bg-amber-100 text-amber-600' }
-                  ].map((activity, index) => (
-                    <div key={index} className="flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 transition-all">
-                      <div className={`w-10 h-10 rounded-full ${activity.color} flex items-center justify-center font-semibold text-sm flex-shrink-0`}>
-                        {activity.user.split(' ').map(n => n[0]).join('')}
+                  {courses.slice(0, 5).map((course, idx) => (
+                    <div key={idx} className="p-3 bg-gray-50 rounded-xl hover:bg-indigo-50 transition">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-semibold text-gray-900">{course.title}</h4>
+                        <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                          course.isPublished ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-700'
+                        }`}>
+                          {course.isPublished ? 'Published' : 'Draft'}
+                        </span>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-gray-900 font-medium"><span className="font-semibold">{activity.user}</span> {activity.action}</p>
-                        <p className="text-sm text-gray-500 mt-1">{activity.time}</p>
+                      <div className="flex gap-4 text-sm text-gray-600">
+                        <span>👥 {course.enrolledStudents?.length || 0} students</span>
+                        <span>⭐ {course.rating ? course.rating.toFixed(1) : 'N/A'}</span>
                       </div>
                     </div>
                   ))}
@@ -207,34 +339,82 @@ const AdminDashboard = () => {
         {/* Users Tab */}
         {activeTab === 'users' && (
           <div className="space-y-6">
-            {/* Search and Filters */}
+            {/* Search */}
             <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <input
-                    type="text"
-                    placeholder="Search users by name or email..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all"
-                  />
-                  <svg className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <select className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all">
-                  <option>All Roles</option>
-                  <option>Students</option>
-                  <option>Instructors</option>
-                  <option>Admins</option>
-                </select>
-                <select className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all">
-                  <option>All Status</option>
-                  <option>Active</option>
-                  <option>Inactive</option>
-                </select>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search users by name or email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all"
+                />
+                <svg className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
               </div>
             </div>
+
+            {/* Add User Modal */}
+            {showAddUser && (
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold text-gray-900">Add New User</h3>
+                  <button
+                    onClick={() => setShowAddUser(false)}
+                    className="text-gray-500 hover:text-gray-700 text-2xl"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <input
+                    type="text"
+                    placeholder="Username"
+                    value={newUser.username}
+                    onChange={(e) => setNewUser({...newUser, username: e.target.value})}
+                    className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 outline-none"
+                  />
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={newUser.email}
+                    onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                    className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 outline-none"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    value={newUser.password}
+                    onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                    className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 outline-none"
+                  />
+                  <select
+                    value={newUser.role}
+                    onChange={(e) => setNewUser({...newUser, role: e.target.value})}
+                    className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 outline-none"
+                  >
+                    <option value="student">Student</option>
+                    <option value="instructor">Instructor</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+                <div className="flex gap-4">
+                  <button
+                    onClick={handleAddUser}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all"
+                  >
+                    Add User
+                  </button>
+                  <button
+                    onClick={() => setShowAddUser(false)}
+                    className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Users Table */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
@@ -242,58 +422,61 @@ const AdminDashboard = () => {
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      <th className="px-6 py-4 text-left">
-                        <input type="checkbox" className="w-4 h-4 rounded border-gray-300" />
-                      </th>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">User</th>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Email</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Time Spent (hrs)</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Rating</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Courses</th>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Role</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Joined</th>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {filteredUsers.map((user) => (
-                      <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4">
-                          <input type="checkbox" className="w-4 h-4 rounded border-gray-300" />
-                        </td>
+                    {filteredUsers.map((u) => (
+                      <tr key={u._id || u.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white font-semibold">
-                              {user.name.split(' ').map(n => n[0]).join('')}
+                              {(u.username || 'U').charAt(0).toUpperCase()}
                             </div>
-                            <span className="font-medium text-gray-900">{user.name}</span>
+                            <span className="font-medium text-gray-900">{u.username || 'Unknown'}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-gray-600">{user.email}</td>
+                        <td className="px-6 py-4 text-gray-600">{u.email}</td>
                         <td className="px-6 py-4">
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            user.role === 'Instructor' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
-                          }`}>
-                            {user.role}
-                          </span>
+                          <span className="font-semibold text-indigo-600">{u.timeSpent}hr</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-1">
+                            <span className="text-yellow-500">⭐</span>
+                            <span className="font-semibold text-gray-900">{u.rating}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="font-semibold text-gray-900">{u.enrolledCourses}</span>
                         </td>
                         <td className="px-6 py-4">
                           <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            user.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-700'
+                            u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
                           }`}>
-                            {user.status}
+                            {u.role === 'admin' ? 'Admin' : 'Student'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-gray-600">{user.joined}</td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Edit">
-                              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                              </svg>
+                            <button
+                              onClick={() => setSelectedUser(u._id || u.id)}
+                              className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="View"
+                            >
+                              👁️
                             </button>
-                            <button className="p-2 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
-                              <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
+                            <button
+                              onClick={() => handleDeleteUser(u._id || u.id)}
+                              className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete"
+                            >
+                              🗑️
                             </button>
                           </div>
                         </td>
@@ -302,21 +485,6 @@ const AdminDashboard = () => {
                   </tbody>
                 </table>
               </div>
-              
-              {/* Pagination */}
-              <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-                <p className="text-sm text-gray-600">
-                  Showing <span className="font-semibold">1</span> to <span className="font-semibold">{filteredUsers.length}</span> of <span className="font-semibold">{users.length}</span> users
-                </p>
-                <div className="flex gap-2">
-                  <button className="px-4 py-2 border-2 border-gray-200 rounded-lg font-medium text-gray-600 hover:bg-gray-50 transition-all">
-                    Previous
-                  </button>
-                  <button className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-medium hover:from-indigo-700 hover:to-purple-700 transition-all">
-                    Next
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         )}
@@ -324,45 +492,116 @@ const AdminDashboard = () => {
         {/* Courses Tab */}
         {activeTab === 'courses' && (
           <div className="space-y-6">
+            {/* Add Course Modal */}
+            {showAddCourse && (
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold text-gray-900">Add New Course</h3>
+                  <button
+                    onClick={() => setShowAddCourse(false)}
+                    className="text-gray-500 hover:text-gray-700 text-2xl"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="space-y-4 mb-6">
+                  <input
+                    type="text"
+                    placeholder="Course Title"
+                    value={newCourse.title}
+                    onChange={(e) => setNewCourse({...newCourse, title: e.target.value})}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 outline-none"
+                  />
+                  <textarea
+                    placeholder="Course Description"
+                    value={newCourse.description}
+                    onChange={(e) => setNewCourse({...newCourse, description: e.target.value})}
+                    rows="4"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 outline-none resize-none"
+                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input
+                      type="text"
+                      placeholder="Category"
+                      value={newCourse.category}
+                      onChange={(e) => setNewCourse({...newCourse, category: e.target.value})}
+                      className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 outline-none"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Price"
+                      value={newCourse.price}
+                      onChange={(e) => setNewCourse({...newCourse, price: parseFloat(e.target.value)})}
+                      className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 outline-none"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <button
+                    onClick={handleAddCourse}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all"
+                  >
+                    Create Course
+                  </button>
+                  <button
+                    onClick={() => setShowAddCourse(false)}
+                    className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Courses Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {courses.map((course) => (
-                <div key={course.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all transform hover:-translate-y-1">
-                  <div className="h-48 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-6xl">
-                    📚
+                <div key={course._id} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all">
+                  <div className="h-40 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-6xl">
+                    {course.thumbnail ? (
+                      <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
+                    ) : (
+                      '📚'
+                    )}
                   </div>
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-3">
                       <h3 className="font-bold text-lg text-gray-900 flex-1">{course.title}</h3>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        course.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-700'
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ml-2 ${
+                        course.isPublished ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-700'
                       }`}>
-                        {course.status}
+                        {course.isPublished ? 'Published' : 'Draft'}
                       </span>
                     </div>
-                    <p className="text-gray-600 text-sm mb-4">by {course.instructor}</p>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-600 text-sm">Students</span>
-                        <span className="font-semibold text-gray-900">{course.students.toLocaleString()}</span>
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                      {course.description || 'No description'}
+                    </p>
+                    <div className="space-y-2 mb-6 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Students</span>
+                        <span className="font-semibold text-gray-900">{course.enrolledStudents?.length || 0}</span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-600 text-sm">Rating</span>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Rating</span>
                         <div className="flex items-center gap-1">
-                          <span className="text-amber-500">★</span>
-                          <span className="font-semibold text-gray-900">{course.rating}</span>
+                          <span className="text-yellow-500">⭐</span>
+                          <span className="font-semibold">{course.rating ? course.rating.toFixed(1) : 'N/A'}</span>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-600 text-sm">Revenue</span>
-                        <span className="font-semibold text-emerald-600">${course.revenue.toLocaleString()}</span>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Price</span>
+                        <span className="font-semibold text-emerald-600">${course.price || 0}</span>
                       </div>
                     </div>
-                    <div className="mt-6 flex gap-2">
-                      <button className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all">
+                    <div className="flex gap-2">
+                      <button className="flex-1 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg font-medium hover:bg-indigo-200 transition">
                         Edit
                       </button>
-                      <button className="px-4 py-2 border-2 border-gray-200 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-all">
-                        View
+                      <button
+                        onClick={() => handleDeleteCourse(course._id)}
+                        className="flex-1 px-4 py-2 bg-red-100 text-red-700 rounded-lg font-medium hover:bg-red-200 transition"
+                      >
+                        Delete
                       </button>
                     </div>
                   </div>
@@ -438,112 +677,7 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* Payments Tab */}
-        {activeTab === 'payments' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                <p className="text-gray-600 text-sm font-medium mb-2">Total Revenue</p>
-                <h3 className="text-3xl font-bold text-gray-900 mb-2">${stats.totalRevenue.toLocaleString()}</h3>
-                <p className="text-emerald-600 text-sm font-semibold">↑ 23.5% from last month</p>
-              </div>
-              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                <p className="text-gray-600 text-sm font-medium mb-2">Pending Payouts</p>
-                <h3 className="text-3xl font-bold text-gray-900 mb-2">$24,350</h3>
-                <p className="text-gray-600 text-sm">12 instructors awaiting payout</p>
-              </div>
-              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                <p className="text-gray-600 text-sm font-medium mb-2">Refund Requests</p>
-                <h3 className="text-3xl font-bold text-gray-900 mb-2">8</h3>
-                <p className="text-amber-600 text-sm font-semibold">Requires attention</p>
-              </div>
-            </div>
 
-            {/* Recent Transactions */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-              <div className="p-6 border-b border-gray-200">
-                <h3 className="text-xl font-bold text-gray-900">Recent Transactions</h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Transaction ID</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">User</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Course</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Amount</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {[
-                      { id: 'TXN-1234', user: 'John Doe', course: 'Web Development Bootcamp', amount: 99, status: 'Completed', date: '2024-02-15' },
-                      { id: 'TXN-1235', user: 'Emily Brown', course: 'Machine Learning', amount: 149, status: 'Completed', date: '2024-02-15' },
-                      { id: 'TXN-1236', user: 'Mike Johnson', course: 'Data Science', amount: 129, status: 'Pending', date: '2024-02-14' },
-                      { id: 'TXN-1237', user: 'Sarah Wilson', course: 'Mobile Development', amount: 119, status: 'Completed', date: '2024-02-14' }
-                    ].map((transaction) => (
-                      <tr key={transaction.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 font-mono text-sm text-gray-600">{transaction.id}</td>
-                        <td className="px-6 py-4 font-medium text-gray-900">{transaction.user}</td>
-                        <td className="px-6 py-4 text-gray-600">{transaction.course}</td>
-                        <td className="px-6 py-4 font-semibold text-gray-900">${transaction.amount}</td>
-                        <td className="px-6 py-4">
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            transaction.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                          }`}>
-                            {transaction.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-gray-600">{transaction.date}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Settings Tab */}
-        {activeTab === 'settings' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">Platform Settings</h3>
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Platform Name</label>
-                  <input type="text" defaultValue="CourseAI" className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Support Email</label>
-                  <input type="email" defaultValue="support@courseai.com" className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Currency</label>
-                  <select className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all">
-                    <option>USD ($)</option>
-                    <option>EUR (€)</option>
-                    <option>GBP (£)</option>
-                  </select>
-                </div>
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                  <div>
-                    <p className="font-semibold text-gray-900">Maintenance Mode</p>
-                    <p className="text-sm text-gray-600">Temporarily disable public access</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                  </label>
-                </div>
-                <button className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 shadow-lg transition-all">
-                  Save Settings
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </main>
     </div>
   );

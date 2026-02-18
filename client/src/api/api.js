@@ -87,6 +87,9 @@ export const adminAPI = {
   
   // Enrollments
   getAllEnrollments: () => API.get('/admin/enrollments'),
+  
+  // Recent History
+  getRecentHistory: (limit = 20) => API.get(`/admin/history?limit=${limit}`),
 };
 
 export default API;
