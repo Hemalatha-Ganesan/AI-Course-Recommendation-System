@@ -3,7 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 
-==================== TAILWIND COMPONENT LAYER ====================
+/* ==================== TAILWIND BASE LAYER ==================== */
 @layer base {
   * {
     margin: 0;

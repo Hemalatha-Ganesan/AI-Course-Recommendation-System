@@ -385,10 +385,11 @@ const Login = () => {
 
               <div className="login-creds">
                 <button type="button" className="login-cred-btn login-cred-admin"
-                  onClick={() => fillCredentials('hemalathaganesan08@gmial.com', 'Hemalatha Ganesan')}>
-                  <div className="login-cred-role">Admin ↗</div>
-                  <div className="login-cred-email">admin@test.com</div>
-                  <div className="login-cred-pass">admin123</div>
+                onClick={() => fillCredentials('hemalatha080705@gmail.com', 'Hema')}>
+
+                  <div className="login-cred-role">hemalatha ↗</div>
+                  <div className="login-cred-email">hemalatha080705@gmail.com</div>
+                  <div className="login-cred-pass">HemaG</div>
                 </button>
                 <button type="button" className="login-cred-btn login-cred-user"
                   onClick={() => fillCredentials('user@test.com', 'user123')}>

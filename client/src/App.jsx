@@ -17,6 +17,7 @@ import CourseDetails from './pages/CourseDetails';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
+import ManageUsers from './pages/admin/ManageUsers';
 
 function App() {
   return (
@@ -65,6 +66,11 @@ function App() {
           <Route path="/admin" element={
             <AdminRoute>
               <AdminDashboard />
+            </AdminRoute>
+          } />
+          <Route path="/admin/users" element={
+            <AdminRoute>
+              <ManageUsers />
             </AdminRoute>
           } />
 
