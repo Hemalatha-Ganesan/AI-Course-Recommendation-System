@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { UserContext } from '../contexts/UserContext';
 import { Link, useNavigate } from 'react-router-dom';
 import Loader from '../components/Loader';
@@ -9,12 +9,25 @@ const UserProfile = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({
-    username: user?.username || '',
-    email: user?.email || '',
-    bio: user?.bio || '',
-    phone: user?.phone || '',
-    profileImage: user?.profileImage || '',
+    username: '',
+    email: '',
+    bio: '',
+    phone: '',
+    profileImage: '',
   });
+
+  // ✅ Fix: Sync formData when user loads
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        username: user.username || '',
+        email: user.email || '',
+        bio: user.bio || '',
+        phone: user.phone || '',
+        profileImage: user.profileImage || '',
+      });
+    }
+  }, [user]);
 
   if (loading) {
     return <Loader />;
@@ -45,16 +58,37 @@ const UserProfile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSaveProfile = () => {
     // Add API call here to save profile
     console.log('Saving profile:', formData);
     setEditMode(false);
+  };
+
+  // ✅ Fix: Static color maps instead of dynamic Tailwind classes
+  const statColorMap = {
+    emerald: {
+      wrapper: 'bg-emerald-50 border-emerald-100',
+      label: 'text-emerald-900',
+      value: 'text-emerald-600',
+    },
+    blue: {
+      wrapper: 'bg-blue-50 border-blue-100',
+      label: 'text-blue-900',
+      value: 'text-blue-600',
+    },
+    orange: {
+      wrapper: 'bg-orange-50 border-orange-100',
+      label: 'text-orange-900',
+      value: 'text-orange-600',
+    },
+    yellow: {
+      wrapper: 'bg-yellow-50 border-yellow-100',
+      label: 'text-yellow-900',
+      value: 'text-yellow-600',
+    },
   };
 
   return (
@@ -69,7 +103,8 @@ const UserProfile = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Profile Card */}
+
+          {/* Profile Card / Sidebar */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 sticky top-4">
               {/* Profile Avatar */}
@@ -121,130 +156,199 @@ const UserProfile = () => {
 
           {/* Content Area */}
           <div className="lg:col-span-3">
-            {/* Profile Tab */}
+
+            {/* ── Profile Tab ── */}
             {activeTab === 'profile' && (
-              <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
-                <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-3xl font-bold text-gray-900">Profile Information</h2>
-                  {!editMode && (
-                    <button
-                      onClick={() => setEditMode(true)}
-                      className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
-                    >
-                      Edit Profile
-                    </button>
+              <div className="space-y-6">
+
+                {/* Progress Overview Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-gradient-to-br from-violet-50 to-indigo-50 rounded-2xl p-6 border border-violet-100 shadow-sm hover:shadow-md transition">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-bold text-violet-700 uppercase tracking-wider">Total Courses</p>
+                      <span className="text-3xl">📚</span>
+                    </div>
+                    <h3 className="text-4xl font-black text-violet-900">5</h3>
+                    <p className="text-xs text-violet-600 mt-2">Enrolled in 5 courses</p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-100 shadow-sm hover:shadow-md transition">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-bold text-emerald-700 uppercase tracking-wider">Completed</p>
+                      <span className="text-3xl">✅</span>
+                    </div>
+                    <h3 className="text-4xl font-black text-emerald-900">2</h3>
+                    <p className="text-xs text-emerald-600 mt-2">Courses successfully finished</p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border border-blue-100 shadow-sm hover:shadow-md transition">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-bold text-blue-700 uppercase tracking-wider">Avg Rating</p>
+                      <span className="text-3xl">⭐</span>
+                    </div>
+                    <h3 className="text-4xl font-black text-blue-900">4.7</h3>
+                    <p className="text-xs text-blue-600 mt-2">Overall performance rating</p>
+                  </div>
+                </div>
+
+                {/* Learning Progress */}
+                <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6">📖 Learning Progress</h3>
+                  <div className="space-y-4">
+                    {[
+                      { course: 'Web Development Bootcamp', progress: 85, instructor: 'David Lee' },
+                      { course: 'Machine Learning Fundamentals', progress: 60, instructor: 'Sarah Smith' },
+                      { course: 'Data Science with Python', progress: 45, instructor: 'Sarah Smith' },
+                      { course: 'UI/UX Design Masterclass', progress: 100, instructor: 'Emma Chen' },
+                      { course: 'Cloud Architecture & AWS', progress: 30, instructor: 'James Wilson' },
+                    ].map((item, idx) => (
+                      <div key={idx} className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100/50 transition">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <p className="font-bold text-gray-900">{item.course}</p>
+                            <p className="text-xs text-gray-500">by {item.instructor}</p>
+                          </div>
+                          <span className={`text-sm font-black px-3 py-1 rounded-full ${
+                            item.progress === 100 ? 'bg-emerald-100 text-emerald-700' :
+                            item.progress >= 75 ? 'bg-blue-100 text-blue-700' :
+                            item.progress >= 50 ? 'bg-amber-100 text-amber-700' :
+                            'bg-orange-100 text-orange-700'
+                          }`}>
+                            {item.progress}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200 h-2.5 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${
+                              item.progress === 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-500' :
+                              item.progress >= 75 ? 'bg-gradient-to-r from-blue-500 to-indigo-500' :
+                              item.progress >= 50 ? 'bg-gradient-to-r from-amber-500 to-orange-500' :
+                              'bg-gradient-to-r from-orange-500 to-red-500'
+                            }`}
+                            style={{ width: `${item.progress}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Profile Information Section */}
+                <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+                  <div className="flex items-center justify-between mb-8">
+                    <h2 className="text-3xl font-bold text-gray-900">Profile Information</h2>
+                    {!editMode && (
+                      <button
+                        onClick={() => setEditMode(true)}
+                        className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
+                      >
+                        Edit Profile
+                      </button>
+                    )}
+                  </div>
+
+                  {editMode ? (
+                    <div className="space-y-6">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Username</label>
+                        <input
+                          type="text"
+                          name="username"
+                          value={formData.username}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+                        <input
+                          type="tel"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          placeholder="Enter your phone number"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Bio</label>
+                        <textarea
+                          name="bio"
+                          value={formData.bio}
+                          onChange={handleInputChange}
+                          placeholder="Tell us about yourself..."
+                          rows="4"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all resize-none"
+                        />
+                      </div>
+
+                      <div className="flex gap-4">
+                        <button
+                          onClick={handleSaveProfile}
+                          className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all"
+                        >
+                          Save Changes
+                        </button>
+                        <button
+                          onClick={() => setEditMode(false)}
+                          className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="p-4 bg-gray-50 rounded-xl">
+                          <p className="text-sm text-gray-600 font-semibold mb-1">Username</p>
+                          <p className="text-lg font-bold text-gray-900">{formData.username}</p>
+                        </div>
+                        <div className="p-4 bg-gray-50 rounded-xl">
+                          <p className="text-sm text-gray-600 font-semibold mb-1">Email</p>
+                          <p className="text-lg font-bold text-gray-900">{formData.email}</p>
+                        </div>
+                        <div className="p-4 bg-gray-50 rounded-xl">
+                          <p className="text-sm text-gray-600 font-semibold mb-1">Phone</p>
+                          <p className="text-lg font-bold text-gray-900">{formData.phone || 'Not provided'}</p>
+                        </div>
+                        <div className="p-4 bg-gray-50 rounded-xl">
+                          <p className="text-sm text-gray-600 font-semibold mb-1">Member Since</p>
+                          <p className="text-lg font-bold text-gray-900">
+                            {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                          </p>
+                        </div>
+                      </div>
+                      {formData.bio && (
+                        <div className="p-4 bg-gray-50 rounded-xl">
+                          <p className="text-sm text-gray-600 font-semibold mb-2">Bio</p>
+                          <p className="text-gray-700">{formData.bio}</p>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
 
-                {editMode ? (
-                  <div className="space-y-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Username
-                      </label>
-                      <input
-                        type="text"
-                        name="username"
-                        value={formData.username}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Phone Number
-                      </label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        placeholder="Enter your phone number"
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Bio
-                      </label>
-                      <textarea
-                        name="bio"
-                        value={formData.bio}
-                        onChange={handleInputChange}
-                        placeholder="Tell us about yourself..."
-                        rows="4"
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all resize-none"
-                      />
-                    </div>
-
-                    <div className="flex gap-4">
-                      <button
-                        onClick={handleSaveProfile}
-                        className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all"
-                      >
-                        Save Changes
-                      </button>
-                      <button
-                        onClick={() => setEditMode(false)}
-                        className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="p-4 bg-gray-50 rounded-xl">
-                        <p className="text-sm text-gray-600 font-semibold mb-1">Username</p>
-                        <p className="text-lg font-bold text-gray-900">{formData.username}</p>
-                      </div>
-                      <div className="p-4 bg-gray-50 rounded-xl">
-                        <p className="text-sm text-gray-600 font-semibold mb-1">Email</p>
-                        <p className="text-lg font-bold text-gray-900">{formData.email}</p>
-                      </div>
-                      <div className="p-4 bg-gray-50 rounded-xl">
-                        <p className="text-sm text-gray-600 font-semibold mb-1">Phone</p>
-                        <p className="text-lg font-bold text-gray-900">{formData.phone || 'Not provided'}</p>
-                      </div>
-                      <div className="p-4 bg-gray-50 rounded-xl">
-                        <p className="text-sm text-gray-600 font-semibold mb-1">Member Since</p>
-                        <p className="text-lg font-bold text-gray-900">
-                          {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
-                        </p>
-                      </div>
-                    </div>
-                    {formData.bio && (
-                      <div className="p-4 bg-gray-50 rounded-xl">
-                        <p className="text-sm text-gray-600 font-semibold mb-2">Bio</p>
-                        <p className="text-gray-700">{formData.bio}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
             )}
 
-            {/* Preferences Tab */}
+            {/* ── Preferences Tab ── */}
             {activeTab === 'preferences' && (
               <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
                 <h2 className="text-3xl font-bold text-gray-900 mb-8">Preferences</h2>
-
                 <div className="space-y-6">
                   {/* Email Notifications */}
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
@@ -310,11 +414,10 @@ const UserProfile = () => {
               </div>
             )}
 
-            {/* Security Tab */}
+            {/* ── Security Tab ── */}
             {activeTab === 'security' && (
               <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
                 <h2 className="text-3xl font-bold text-gray-900 mb-8">Security & Privacy</h2>
-
                 <div className="space-y-6">
                   {/* Change Password */}
                   <div className="p-6 bg-gray-50 rounded-xl border-2 border-gray-200">
@@ -370,11 +473,12 @@ const UserProfile = () => {
               </div>
             )}
 
-            {/* Learning Stats Tab */}
+            {/* ── Learning Stats Tab ── */}
             {activeTab === 'learning' && (
               <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
                 <h2 className="text-3xl font-bold text-gray-900 mb-8">Learning Statistics</h2>
 
+                {/* ✅ Fix: static color classes instead of dynamic template strings */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                   {[
                     { label: 'Courses Completed', value: '5', icon: '✅', color: 'emerald' },
@@ -382,13 +486,16 @@ const UserProfile = () => {
                     { label: 'Current Streak', value: '12 days', icon: '🔥', color: 'orange' },
                     { label: 'Achievements', value: '8', icon: '🏆', color: 'yellow' },
                   ].map((stat, idx) => (
-                    <div key={idx} className={`p-6 bg-${stat.color}-50 rounded-xl border-2 border-${stat.color}-100`}>
+                    <div
+                      key={idx}
+                      className={`p-6 rounded-xl border-2 ${statColorMap[stat.color].wrapper}`}
+                    >
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className={`text-sm font-semibold text-${stat.color}-900 mb-2`}>
+                          <p className={`text-sm font-semibold mb-2 ${statColorMap[stat.color].label}`}>
                             {stat.label}
                           </p>
-                          <p className={`text-3xl font-bold text-${stat.color}-600`}>
+                          <p className={`text-3xl font-bold ${statColorMap[stat.color].value}`}>
                             {stat.value}
                           </p>
                         </div>
@@ -416,7 +523,7 @@ const UserProfile = () => {
                           <div
                             className="bg-gradient-to-r from-indigo-600 to-purple-600 h-2 rounded-full"
                             style={{ width: `${item.percentage}%` }}
-                          ></div>
+                          />
                         </div>
                       </div>
                     ))}
@@ -424,6 +531,7 @@ const UserProfile = () => {
                 </div>
               </div>
             )}
+
           </div>
         </div>
       </div>
