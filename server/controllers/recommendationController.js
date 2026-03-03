@@ -350,4 +350,89 @@ async function getSimilarCourses(course, limit = 6, excludeIds = new Set()) {
   return similarCourses;
 }
 
+// Get search-based recommendations when user searches for a course name
+exports.searchRecommendations = async (req, res) => {
+  try {
+    const { query, limit = 10, category, difficulty } = req.query;
+
+    if (!query || query.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a search query'
+      });
+    }
+
+    // Build the search filter
+    let searchFilter = {
+      isPublished: true,
+      $or: [
+        { title: { $regex: query, $options: 'i' } },        // Case-insensitive title search
+        { description: { $regex: query, $options: 'i' } },  // Case-insensitive description search
+        { category: { $regex: query, $options: 'i' } }      // Category search (e.g., "ML" in "Machine Learning")
+      ]
+    };
+
+    // Add optional filters
+    if (category && category !== 'all') {
+      searchFilter.category = { $regex: category, $options: 'i' };
+    }
+
+    if (difficulty && difficulty !== 'all') {
+      searchFilter.level = difficulty;
+    }
+
+    // Find matching courses, scored by relevance
+    const courses = await Course.find(searchFilter)
+      .populate('instructor', 'name email')
+      .sort({ rating: -1, enrolledStudents: -1 })
+      .limit(parseInt(limit));
+
+    // Add relevance scoring based on keyword matches
+    const scoredCourses = courses.map(course => {
+      let score = 0;
+      const queryLower = query.toLowerCase();
+
+      // Title match (most relevant) - 10 points
+      if (course.title.toLowerCase().includes(queryLower)) {
+        score += 10;
+      }
+
+      // Category match - 8 points
+      if (course.category.toLowerCase().includes(queryLower)) {
+        score += 8;
+      }
+
+      // Description match - 5 points
+      if (course.description.toLowerCase().includes(queryLower)) {
+        score += 5;
+      }
+
+      // Boost popular courses
+      score += course.enrolledStudents.length * 0.1;
+      score += course.rating * 2;
+
+      return {
+        ...course.toObject(),
+        relevanceScore: score
+      };
+    });
+
+    // Sort by relevance score
+    scoredCourses.sort((a, b) => b.relevanceScore - a.relevanceScore);
+
+    res.status(200).json({
+      success: true,
+      count: scoredCourses.length,
+      query: query,
+      data: scoredCourses
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching search recommendations',
+      error: error.message
+    });
+  }
+};
+
 module.exports = exports;

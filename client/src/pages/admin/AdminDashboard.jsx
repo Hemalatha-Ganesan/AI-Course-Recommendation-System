@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useUser } from '../../contexts/UserContext';
+import { adminAPI } from '../../api/api';
 
 // ─── DATA ───────────────────────────────────────────────────────────────────
 const STUDENTS = [
-  { id: 'STU-001', name: 'Arjun Mehta',     email: 'arjun.mehta@gmail.com',   phone: '+91 98765 43210', avatar: 'AM', courses: ['Machine Learning','Web Dev Bootcamp'], progress: 78, grade: 'A',  status: 'Active',   joined: '2024-01-15', location: 'Mumbai', totalSpent: 248, lastActive: '2 hrs ago',   completedCourses: 1 },
-  { id: 'STU-002', name: 'Priya Sharma',    email: 'priya.sharma@yahoo.com',   phone: '+91 87654 32109', avatar: 'PS', courses: ['Data Science'],              progress: 55, grade: 'B+', status: 'Active',   joined: '2024-01-20', location: 'Delhi',  totalSpent: 129, lastActive: '1 day ago',   completedCourses: 0 },
-  { id: 'STU-003', name: 'Rahul Verma',     email: 'rahul.verma@outlook.com',  phone: '+91 76543 21098', avatar: 'RV', courses: ['Web Dev Bootcamp'],          progress: 92, grade: 'A+', status: 'Active',   joined: '2024-02-01', location: 'Pune',   totalSpent: 99,  lastActive: '30 min ago',  completedCourses: 2 },
-  { id: 'STU-004', name: 'Sneha Patel',     email: 'sneha.patel@gmail.com',    phone: '+91 65432 10987', avatar: 'SP', courses: ['Mobile App Dev'],            progress: 34, grade: 'C',  status: 'Inactive', joined: '2024-01-10', location: 'Ahm.',   totalSpent: 119, lastActive: '2 weeks ago', completedCourses: 0 },
-  { id: 'STU-005', name: 'Vikram Singh',    email: 'vikram.singh@hotmail.com', phone: '+91 54321 09876', avatar: 'VS', courses: ['Machine Learning','Data Science'], progress: 65, grade: 'B', status: 'Active', joined: '2024-02-10', location: 'Jaipur', totalSpent: 278, lastActive: '5 hrs ago',  completedCourses: 1 },
+  { id: 'STU-001', name: 'Hemalatha G',     email: 'hemalathaganesan08@gmail.com',   phone: '+91 98765 43210', avatar: 'AM', courses: ['Machine Learning','Web Dev Bootcamp'], progress: 78, grade: 'A',  status: 'Active',   joined: '2024-01-15', location: 'Mumbai', totalSpent: 248, lastActive: '2 hrs ago',   completedCourses: 1 },
+  { id: 'STU-002', name: 'Dhanusri M',    email: 'dhanusri.cs23@bitsathy.ac.in',   phone: '+91 87654 32109', avatar: 'PS', courses: ['Data Science'],              progress: 55, grade: 'B+', status: 'Active',   joined: '2024-01-20', location: 'Delhi',  totalSpent: 129, lastActive: '1 day ago',   completedCourses: 0 },
+  { id: 'STU-003', name: 'Dhavamani S',     email: 'dhavamani.cs23@bitsathy.ac.in',  phone: '+91 76543 21098', avatar: 'RV', courses: ['Web Dev Bootcamp'],          progress: 92, grade: 'A+', status: 'Active',   joined: '2024-02-01', location: 'Pune',   totalSpent: 99,  lastActive: '30 min ago',  completedCourses: 2 },
+  { id: 'STU-004', name: 'Menaka G',     email: 'menakaganesan20@gmail.com',    phone: '+91 65432 10987', avatar: 'SP', courses: ['Mobile App Dev'],            progress: 34, grade: 'C',  status: 'Inactive', joined: '2024-01-10', location: 'Ahm.',   totalSpent: 119, lastActive: '2 weeks ago', completedCourses: 0 },
+  { id: 'STU-005', name: 'Nandhitha K',    email: 'nandhitha.cs23@bitsathy.ac.in', phone: '+91 54321 09876', avatar: 'VS', courses: ['Machine Learning','Data Science'], progress: 65, grade: 'B', status: 'Active', joined: '2024-02-10', location: 'Jaipur', totalSpent: 278, lastActive: '5 hrs ago',  completedCourses: 1 },
   { id: 'STU-006', name: 'Ananya Roy',      email: 'ananya.roy@gmail.com',     phone: '+91 43210 98765', avatar: 'AR', courses: ['Web Dev Bootcamp'],          progress: 100, grade: 'A+', status: 'Completed', joined: '2024-01-05', location: 'Kolkata', totalSpent: 99, lastActive: '3 days ago', completedCourses: 3 },
   { id: 'STU-007', name: 'Karthik Nair',   email: 'karthik.nair@gmail.com',   phone: '+91 32109 87654', avatar: 'KN', courses: ['Data Science','ML'],         progress: 88, grade: 'A',  status: 'Active',   joined: '2024-02-15', location: 'Chennai', totalSpent: 278, lastActive: '1 hr ago',   completedCourses: 1 },
   { id: 'STU-008', name: 'Divya Krishnan', email: 'divya.k@outlook.com',      phone: '+91 21098 76543', avatar: 'DK', courses: ['Machine Learning'],          progress: 41, grade: 'B-', status: 'At Risk',  joined: '2024-01-25', location: 'Hyd.',   totalSpent: 149, lastActive: '1 week ago',  completedCourses: 0 },
@@ -128,6 +131,9 @@ function StatCard({ title, value, sub, icon, change, gradient }) {
 
 // ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
 export default function AdminDashboard() {
+  const navigate = useNavigate();
+  const { logout } = useUser();
+  
   const [tab, setTab]           = useState('overview');
   const [search, setSearch]     = useState('');
   const [roleFilter, setRoleFilter]   = useState('All');
@@ -136,6 +142,54 @@ export default function AdminDashboard() {
   const [selectedCourse, setSelectedCourse]   = useState(null);
   const [notification, setNotification]       = useState(null);
   const [sidebarOpen, setSidebarOpen]         = useState(true);
+  
+  // Real users from database
+  const [realUsers, setRealUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(true);
+  
+  // Logout handler
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  // Fetch real users on mount
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setUsersLoading(true);
+        const res = await adminAPI.getAllUsers();
+        const data = res?.data?.data || [];
+        
+        // Transform database users to match dashboard display format
+        const transformedUsers = data
+          .filter(u => u.role !== 'admin') // Exclude admins, show only regular users
+          .map((u, idx) => ({
+            id: u._id || `USR-${String(idx + 1).padStart(3, '0')}`,
+            avatar: u.username?.substring(0, 2).toUpperCase() || 'U',
+            name: u.username || 'Unknown User',
+            email: u.email,
+            location: u.profile?.location || 'Not Specified',
+            courses: u.enrolledCourses || [],
+            progress: 0, // Default progress
+            grade: 'N/A',
+            status: u.isActive ? 'Active' : 'Inactive',
+            totalSpent: 0, // Would need enrollment data
+            lastActive: 'Just now',
+            joined: u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A',
+            completedCourses: 0,
+          }));
+        
+        setRealUsers(transformedUsers);
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+      } finally {
+        setUsersLoading(false);
+      }
+    };
+    
+    fetchUsers();
+  }, []);
 
   const notify = (msg, type = 'success') => {
     setNotification({ msg, type });
@@ -143,14 +197,14 @@ export default function AdminDashboard() {
   };
 
   // Derived stats
-  const totalStudents  = STUDENTS.length;
-  const activeStudents = STUDENTS.filter(s => s.status === 'Active').length;
-  const atRisk         = STUDENTS.filter(s => s.status === 'At Risk').length;
+  const totalStudents  = realUsers.length;
+  const activeStudents = realUsers.filter(s => s.status === 'Active').length;
+  const atRisk         = realUsers.filter(s => s.status === 'At Risk').length;
   const totalRevenue   = TRANSACTIONS.filter(t => t.status === 'Completed').reduce((a, t) => a + t.amount, 0);
   const totalEnrolls   = COURSES.reduce((a, c) => a + c.students, 0);
   const avgCompletion  = Math.round(COURSES.filter(c=>c.status==='Active').reduce((a,c)=>a+c.completionRate,0)/COURSES.filter(c=>c.status==='Active').length);
 
-  const filteredStudents = STUDENTS.filter(s => {
+  const filteredStudents = realUsers.filter(s => {
     const q = search.toLowerCase();
     const matchSearch = s.name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q) || s.id.toLowerCase().includes(q);
     const matchRole   = roleFilter === 'All' || s.status === roleFilter;
@@ -232,17 +286,24 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Admin Profile */}
+        {/* Admin Profile & Logout */}
         <div className="p-3 border-t border-slate-100">
-          <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 cursor-pointer transition">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-red-50 transition group"
+            title="Logout"
+          >
             <Avatar initials="AD" size="sm" gradient="from-violet-600 to-indigo-600" />
             {sidebarOpen && (
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-slate-900 truncate">Admin User</p>
-                <p className="text-[10px] text-slate-400 truncate">Super Admin</p>
+              <div className="min-w-0 flex-1 text-left">
+                <p className="text-xs font-bold text-slate-900 truncate group-hover:text-red-700">Admin User</p>
+                <p className="text-[10px] text-slate-400 truncate group-hover:text-red-600">Click to logout</p>
               </div>
             )}
-          </div>
+            {sidebarOpen && (
+              <span className="text-red-600 group-hover:scale-110 transition text-lg ml-auto">🚪</span>
+            )}
+          </button>
         </div>
       </aside>
 
@@ -437,7 +498,20 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
-                      {filteredStudents.map(s => (
+                      {usersLoading ? (
+                        <tr>
+                          <td colSpan="10" className="px-4 py-8 text-center text-slate-500">
+                            <p>Loading students...</p>
+                          </td>
+                        </tr>
+                      ) : filteredStudents.length === 0 ? (
+                        <tr>
+                          <td colSpan="10" className="px-4 py-8 text-center text-slate-500">
+                            <p>No students found. Users who sign up will appear here.</p>
+                          </td>
+                        </tr>
+                      ) : (
+                      filteredStudents.map(s => (
                         <tr key={s.id} className="hover:bg-slate-50/80 transition-colors">
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2.5">
@@ -468,12 +542,13 @@ export default function AdminDashboard() {
                             </div>
                           </td>
                         </tr>
-                      ))}
+                      ))
+                      )}
                     </tbody>
                   </table>
                 </div>
                 <div className="px-4 py-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
-                  <span>Showing {filteredStudents.length} of {STUDENTS.length} students</span>
+                  <span>Showing {filteredStudents.length} of {realUsers.length} students</span>
                   <div className="flex gap-2">
                     <button className="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 transition">← Prev</button>
                     <button className="px-3 py-1.5 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition">Next →</button>

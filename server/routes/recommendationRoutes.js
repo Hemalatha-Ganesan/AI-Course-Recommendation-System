@@ -6,11 +6,15 @@ const {
   getRecommendations,
   getCourseBasedRecommendations,
   getRecommendationsByFilters,
-  getTrendingCourses
+  getTrendingCourses,
+  searchRecommendations
 } = require('../controllers/recommendationController');
 
 // Get personalized recommendations for logged-in user
 router.get('/personalized', authMiddleware, getRecommendations);
+
+// Search-based recommendations
+router.get('/search', searchRecommendations);
 
 // Get recommendations based on specific course
 router.get('/course/:courseId', getCourseBasedRecommendations);

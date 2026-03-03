@@ -59,9 +59,25 @@ export const authAPI = {
 export const courseAPI = {
   getCourses: () => API.get('/courses'),
   getCourseById: (id) => API.get(`/courses/${id}`),
+  getAllCourses: () => API.get('/courses'),
   enrollCourse: (courseId) => API.post('/enrollments', { courseId }),
   getEnrolledCourses: () => API.get('/enrollments/my-courses'),
   rateCourse: (courseId, rating, review) => API.post('/ratings', { courseId, rating, review }),
+};
+
+// 🎯 RECOMMENDATION API
+export const recommendationAPI = {
+  getPersonalizedRecommendations: () => API.get('/recommendations/personalized'),
+  searchRecommendations: (query, limit = 10, category, difficulty) => 
+    API.get('/recommendations/search', { 
+      params: { query, limit, category, difficulty } 
+    }),
+  getCourseBasedRecommendations: (courseId, limit = 6) => 
+    API.get(`/recommendations/course/${courseId}`, { params: { limit } }),
+  getRecommendationsByFilters: (category, difficulty, courseId) => 
+    API.post('/recommendations/filters', { category, difficulty, courseId }),
+  getTrendingCourses: (limit = 10) => 
+    API.get('/recommendations/trending', { params: { limit } }),
 };
 
 // 👑 ADMIN API

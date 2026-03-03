@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { courseAPI } from '../api/api';
+import { courseAPI, recommendationAPI } from '../api/api';
 import CourseCard from '../components/CourseCard';
 import Loader from '../components/Loader';
 
@@ -12,6 +12,7 @@ const Courses = () => {
     difficulty: '',
     search: ''
   });
+  const [searchFallback, setSearchFallback] = useState(false); // true when no direct match and trending shown
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -30,28 +31,62 @@ const Courses = () => {
   }, []);
 
   useEffect(() => {
-    let filtered = [...courses];
+    const applyFilters = async () => {
+      let filtered = [...courses];
 
-    if (filters.category) {
-      filtered = filtered.filter(course => 
-        course.category?.toLowerCase() === filters.category.toLowerCase()
-      );
-    }
+      // If user is searching, use the recommendation API for better results
+      if (filters.search && filters.search.trim().length > 0) {
+        try {
+          setLoading(true);
+          // ignore category/difficulty when calling search API
+          const response = await recommendationAPI.searchRecommendations(
+            filters.search,
+            100 // limit
+          );
+          filtered = response.data.data || [];
+        } catch (error) {
+          console.error('Error fetching search recommendations:', error);
+          // fallback to client-side filter
+          filtered = courses.filter(course =>
+            course.title?.toLowerCase().includes(filters.search.toLowerCase()) ||
+            course.description?.toLowerCase().includes(filters.search.toLowerCase())
+          );
+        } finally {
+          setLoading(false);
+        }
+        // if no matches, show trending courses as suggestions
+        if (filtered.length === 0) {
+          setSearchFallback(true);
+          try {
+            const trendRes = await recommendationAPI.getTrendingCourses(6);
+            filtered = trendRes.data.data || [];
+          } catch (e) {
+            console.warn('Trending fetch failed:', e);
+          }
+        } else {
+          setSearchFallback(false);
+        }
+      } else {
+        setSearchFallback(false);
+        // No search query, apply regular filters
+        if (filters.category) {
+          filtered = filtered.filter(course => 
+            course.category?.toLowerCase() === filters.category.toLowerCase()
+          );
+        }
 
-    if (filters.difficulty) {
-      filtered = filtered.filter(course => 
-        course.difficulty?.toLowerCase() === filters.difficulty.toLowerCase()
-      );
-    }
+        if (filters.difficulty) {
+          filtered = filtered.filter(course => 
+            course.level?.toLowerCase() === filters.difficulty.toLowerCase() ||
+            course.difficulty?.toLowerCase() === filters.difficulty.toLowerCase()
+          );
+        }
+      }
 
-    if (filters.search) {
-      filtered = filtered.filter(course =>
-        course.title?.toLowerCase().includes(filters.search.toLowerCase()) ||
-        course.description?.toLowerCase().includes(filters.search.toLowerCase())
-      );
-    }
+      setFilteredCourses(filtered);
+    };
 
-    setFilteredCourses(filtered);
+    applyFilters();
   }, [filters, courses]);
 
   const handleFilterChange = (e) => {
@@ -88,11 +123,13 @@ const Courses = () => {
           <label>Category</label>
           <select name="category" value={filters.category} onChange={handleFilterChange}>
             <option value="">All Categories</option>
-            <option value="programming">Programming</option>
-            <option value="design">Design</option>
-            <option value="business">Business</option>
-            <option value="marketing">Marketing</option>
-            <option value="data science">Data Science</option>
+            <option value="Development">Development</option>
+            <option value="Business">Business</option>
+            <option value="Design">Design</option>
+            <option value="Marketing">Marketing</option>
+            <option value="IT & Software">IT & Software</option>
+            <option value="Personal Development">Personal Development</option>
+            <option value="Other">Other</option>
           </select>
         </div>
 
@@ -108,15 +145,32 @@ const Courses = () => {
       </div>
 
       {filteredCourses.length > 0 ? (
-        <div className="courses-grid">
-          {filteredCourses.map((course) => (
-            <CourseCard key={course._id} course={course} />
-          ))}
+        <div>
+          {filters.search && (
+            <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#f0f4ff', borderRadius: '8px', borderLeft: '4px solid #6366f1' }}>
+              <p style={{ margin: '0', color: '#4f46e5', fontSize: '14px', fontWeight: '600' }}>
+                📚 Showing {filteredCourses.length} course(s) recommended for "<strong>{filters.search}</strong>"
+                {searchFallback && ' (fallback to trending courses)'}
+              </p>
+            </div>
+          )}
+          <div className="courses-grid">
+            {filteredCourses.map((course) => (
+              <CourseCard key={course._id} course={course} />
+            ))}
+          </div>
         </div>
+      ) : loading ? (
+        <Loader />
       ) : (
         <div className="no-courses">
           <h3>No courses found</h3>
-          <p>Try adjusting your filters</p>
+          {filters.search && (
+            <p>Try searching for different keywords like "Python", "ML", "Web Development", etc.</p>
+          )}
+          {!filters.search && (
+            <p>Try adjusting your filters</p>
+          )}
         </div>
       )}
     </div>
