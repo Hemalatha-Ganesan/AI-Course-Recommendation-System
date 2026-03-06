@@ -60,8 +60,10 @@ export const courseAPI = {
   getCourses: () => API.get('/courses'),
   getCourseById: (id) => API.get(`/courses/${id}`),
   getAllCourses: () => API.get('/courses'),
-  enrollCourse: (courseId) => API.post('/enrollments', { courseId }),
-  getEnrolledCourses: () => API.get('/enrollments/my-courses'),
+  getTotalCoursesCount: () => API.get('/courses/count'),
+  enrollCourse: (courseId) => API.post(`/courses/${courseId}/enroll`),
+  getEnrolledCourses: () => API.get('/courses/user/enrolled'),
+  updateCourseProgress: (courseId, payload) => API.put(`/courses/${courseId}/progress`, payload),
   rateCourse: (courseId, rating, review) => API.post('/ratings', { courseId, rating, review }),
 };
 
@@ -109,3 +111,4 @@ export const adminAPI = {
 };
 
 export default API;
+

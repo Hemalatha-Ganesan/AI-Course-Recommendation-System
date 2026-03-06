@@ -2,8 +2,12 @@ const express = require('express');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
 
-dotenv.config();
+dotenv.config({
+  path: path.join(__dirname, '.env'),
+  override: true,
+});
 
 const app = express();
 
@@ -23,9 +27,15 @@ app.get('/api/health', (req, res) => {
 // Routes
 const adminRoutes = require('./routes/adminRoutes');
 const authRoutes = require('./routes/authRoutes');
+const courseRoutes = require('./routes/courseRoutes');
+const recommendationRoutes = require('./routes/recommendationRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/courses', courseRoutes);
+app.use('/api/recommendations', recommendationRoutes);
+app.use('/api/users', userRoutes);
 
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI)

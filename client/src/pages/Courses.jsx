@@ -18,8 +18,9 @@ const Courses = () => {
     const fetchCourses = async () => {
       try {
         const response = await courseAPI.getAllCourses();
-        setCourses(response.data.courses || []);
-        setFilteredCourses(response.data.courses || []);
+        const courseList = response.data.data || response.data.courses || [];
+        setCourses(courseList);
+        setFilteredCourses(courseList);
       } catch (error) {
         console.error('Failed to fetch courses:', error);
       } finally {
@@ -147,8 +148,8 @@ const Courses = () => {
       {filteredCourses.length > 0 ? (
         <div>
           {filters.search && (
-            <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#f0f4ff', borderRadius: '8px', borderLeft: '4px solid #6366f1' }}>
-              <p style={{ margin: '0', color: '#4f46e5', fontSize: '14px', fontWeight: '600' }}>
+            <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#f0f4ff', borderRadius: '8px', borderLeft: '4px solid #7c3aed' }}>
+              <p style={{ margin: '0', color: '#7c3aed', fontSize: '14px', fontWeight: '600' }}>
                 📚 Showing {filteredCourses.length} course(s) recommended for "<strong>{filters.search}</strong>"
                 {searchFallback && ' (fallback to trending courses)'}
               </p>
@@ -178,3 +179,4 @@ const Courses = () => {
 };
 
 export default Courses;
+

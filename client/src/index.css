@@ -13,8 +13,8 @@
 
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f3f4f6;
-    color: #1f2937;
+    background: #f5f3ff;
+    color: #2e1065;
     line-height: 1.6;
   }
 
@@ -39,7 +39,7 @@
   /* ==================== NAVBAR ==================== */
   .navbar {
     @apply sticky top-0 z-50 px-8 py-4 shadow-md;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
   }
 
   .navbar-container {
@@ -78,7 +78,7 @@
 
   .btn-signup {
     @apply bg-white font-semibold;
-    color: #667eea;
+    color: #7c3aed;
   }
 
   .btn-signup:hover {
@@ -114,7 +114,7 @@
 
   .footer-section h3 {
     @apply text-2xl mb-4;
-    color: #667eea;
+    color: #7c3aed;
   }
 
   .footer-section h4 {
@@ -138,7 +138,7 @@
   }
 
   .footer-section ul li a:hover {
-    color: #667eea;
+    color: #7c3aed;
   }
 
   .social-icons {
@@ -150,7 +150,7 @@
   }
 
   .social-icons a:hover {
-    color: #667eea;
+    color: #7c3aed;
   }
 
   .footer-bottom {
@@ -169,7 +169,7 @@
   .spinner {
     @apply rounded-full mx-auto mb-4;
     border: 4px solid #f3f3f3;
-    border-top: 4px solid #667eea;
+    border-top: 4px solid #7c3aed;
     width: 50px;
     height: 50px;
     animation: spin 1s linear infinite;
@@ -177,7 +177,7 @@
 
   .loader p {
     @apply text-lg font-medium;
-    color: #667eea;
+    color: #7c3aed;
   }
 
   /* ==================== COURSE CARD ==================== */
@@ -209,7 +209,7 @@
   .course-category {
     @apply inline-block px-3 py-1 rounded-full text-sm font-semibold mb-3;
     background: #e0e7ff;
-    color: #667eea;
+    color: #7c3aed;
     width: fit-content;
   }
 
@@ -234,12 +234,12 @@
   }
 
   .meta-item .icon {
-    color: #667eea;
+    color: #7c3aed;
   }
 
   .view-course-btn {
     @apply block w-full py-3 text-white text-center no-underline rounded-lg font-semibold mt-auto transition-opacity duration-300;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
   }
 
   .view-course-btn:hover {
@@ -313,12 +313,12 @@
 
   .form-group input:focus,
   .form-group select:focus {
-    border-color: #667eea;
+    border-color: #82f5ff;
   }
 
   .btn-primary {
     @apply w-full py-4 text-white border-none rounded-lg text-lg font-semibold cursor-pointer transition-opacity duration-300;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #82f5ff 0%, #82f5ff 100%);
   }
 
   .btn-primary:hover {
@@ -335,7 +335,7 @@
 
   .auth-box p a {
     @apply no-underline font-semibold;
-    color: #667eea;
+    color: #82f5ff;
   }
 
   .auth-box p a:hover {
@@ -345,7 +345,7 @@
   /* Fix for invalid anchor href warning — use this class on <button> */
   .auth-link-btn {
     @apply bg-transparent border-none font-semibold cursor-pointer p-0 text-base;
-    color: #667eea;
+    color: #3ae4ed;
   }
 
   .auth-link-btn:hover {
@@ -359,7 +359,7 @@
 
   .dashboard-header {
     @apply text-white px-8 py-12 rounded-xl mb-12 text-center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
   }
 
   .dashboard-header h1 {
@@ -385,7 +385,7 @@
 
   .stat-card .icon {
     @apply text-5xl mb-4;
-    color: #667eea;
+    color: #41e2ee;
   }
 
   .stat-card h3 {
@@ -410,11 +410,11 @@
 
   .view-all-link {
     @apply font-semibold no-underline transition-colors duration-300;
-    color: #667eea;
+    color: #3ef1f8;
   }
 
   .view-all-link:hover {
-    color: #764ba2;
+    color: #21b1b6;
   }
 
   /* ==================== COURSES PAGE ==================== */
@@ -501,7 +501,7 @@
 
   .enroll-btn {
     @apply w-full py-5 text-white border-none rounded-lg text-xl font-semibold cursor-pointer transition-opacity duration-300;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
   }
 
   .enroll-btn:hover {
@@ -535,7 +535,7 @@
   }
 
   .nav-menu {
-    @apply fixed flex-col bg-gradient-to-br from-indigo-500 to-purple-600 w-full text-center py-8 gap-4;
+    @apply fixed flex-col bg-gradient-to-br from-purple-600 to-purple-800 w-full text-center py-8 gap-4;
     left: -100%;
     top: 70px;
     transition: 0.3s;

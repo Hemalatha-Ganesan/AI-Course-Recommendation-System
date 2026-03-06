@@ -22,9 +22,9 @@ const CourseDetails = () => {
     const fetchCourse = async () => {
       try {
         const response = await courseAPI.getCourseById(id);
-        setCourse(response.data.course);
+        setCourse(response.data.data || response.data.course || null);
         // Check if user is enrolled
-        setEnrolled(response.data.enrolled || false);
+        setEnrolled(!!response.data.enrolled);
       } catch (error) {
         console.error('Failed to fetch course:', error);
       } finally {

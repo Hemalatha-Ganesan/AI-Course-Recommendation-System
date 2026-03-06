@@ -1,0 +1,19 @@
+{
+  "name": "ai-driven-course-recommendation",
+  "version": "1.0.0",
+  "description": "AI-Driven Course Recommendation System",
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm start",
+    "client": "cd client && npm start",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install",
+    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\""
+  },
+  "keywords": ["course", "recommendation", "ai", "mern"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
+

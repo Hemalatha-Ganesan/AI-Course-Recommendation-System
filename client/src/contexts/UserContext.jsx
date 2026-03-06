@@ -10,6 +10,8 @@ export const UserProvider = ({ children }) => {
   const [token, setToken] = useState(
     localStorage.getItem('token') || null
   );
+  const loading = false;
+  const isAuthenticated = !!user;
 
   // Token is handled by API interceptor in api.js
   // No need to manually set headers here
@@ -97,7 +99,7 @@ export const UserProvider = ({ children }) => {
   };
 
   return (
-    <UserContext.Provider value={{ user, token, login, register, logout }}>
+    <UserContext.Provider value={{ user, token, loading, isAuthenticated, login, register, logout }}>
       {children}
     </UserContext.Provider>
   );

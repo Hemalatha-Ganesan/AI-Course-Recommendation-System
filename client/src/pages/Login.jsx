@@ -53,7 +53,7 @@ const Login = () => {
         }
 
         .login-left {
-          background: linear-gradient(145deg, #4338ca 0%, #6d28d9 50%, #7c3aed 100%);
+          background: linear-gradient(145deg, #5b21b6 0%, #6d28d9 50%, #7c3aed 100%);
           padding: 3rem;
           display: flex;
           flex-direction: column;
@@ -90,6 +90,15 @@ const Login = () => {
           position: relative; z-index: 1;
           display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
         }
+        .login-image {
+          max-width: 100%;
+          margin-bottom: 2rem;
+          border-radius: 1rem;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        @media (max-width: 1024px) {
+          .login-image { display: none; }
+        }
         .login-stat {
           background: rgba(255,255,255,0.1);
           border: 1px solid rgba(255,255,255,0.15);
@@ -120,7 +129,7 @@ const Login = () => {
           font-weight: 700; font-size: 0.875rem; flex-shrink: 0;
         }
         .login-right {
-          background: #f1f5f9;
+          background: #f5f3ff;
           display: flex; align-items: center;
           justify-content: center; padding: 2rem;
           min-height: 100vh;
@@ -135,7 +144,7 @@ const Login = () => {
         }
         .login-mobile-logo h1 {
           font-size: 1.875rem; font-weight: 900;
-          background: linear-gradient(to right, #4f46e5, #7c3aed);
+          background: linear-gradient(to right, #7c3aed, #7c3aed);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           margin-bottom: 0.25rem;
@@ -143,7 +152,7 @@ const Login = () => {
         .login-mobile-logo p { font-size: 0.875rem; color: #64748b; }
         .login-card {
           background: white; border-radius: 1.5rem; padding: 2.5rem;
-          box-shadow: 0 4px 6px -1px rgba(0,0,0,0.07), 0 25px 60px -12px rgba(99,102,241,0.15);
+          box-shadow: 0 4px 6px -1px rgba(0,0,0,0.07), 0 25px 60px -12px rgba(124,58,237,0.16);
           border: 1px solid rgba(0,0,0,0.05);
         }
         .login-card h2 {
@@ -173,13 +182,13 @@ const Login = () => {
           width: 100%; padding: 0.875rem 1rem;
           border: 2px solid #e2e8f0; border-radius: 0.75rem;
           font-size: 0.95rem; outline: none;
-          background: #f8fafc; color: #0f172a;
+          background: #faf5ff; color: #3b0764;
           transition: all 0.2s; box-sizing: border-box;
           font-family: inherit;
         }
         .login-input:focus {
-          border-color: #6366f1; background: #fff;
-          box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+          border-color: #7c3aed; background: #fff;
+          box-shadow: 0 0 0 4px rgba(124,58,237,0.14);
         }
         .login-input-wrap { position: relative; }
         .login-eye {
@@ -190,23 +199,23 @@ const Login = () => {
         }
         .login-eye:hover { color: #64748b; }
         .login-forgot {
-          font-size: 0.8rem; font-weight: 600; color: #6366f1;
+          font-size: 0.8rem; font-weight: 600; color: #7c3aed;
           background: none; border: none; cursor: pointer;
           font-family: inherit;
         }
-        .login-forgot:hover { color: #4338ca; }
+        .login-forgot:hover { color: #5b21b6; }
         .login-check { display: flex; align-items: center; gap: 0.625rem; }
-        .login-check input { width: 16px; height: 16px; accent-color: #6366f1; cursor: pointer; }
+        .login-check input { width: 16px; height: 16px; accent-color: #7c3aed; cursor: pointer; }
         .login-check label { font-size: 0.875rem; color: #475569; cursor: pointer; }
         .login-submit {
           width: 100%; padding: 0.95rem; color: white;
-          background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+          background: linear-gradient(135deg, #7c3aed 0%, #7c3aed 100%);
           border: none; border-radius: 0.75rem;
           font-size: 1rem; font-weight: 700; cursor: pointer;
-          transition: all 0.2s; box-shadow: 0 4px 15px rgba(99,102,241,0.4);
+          transition: all 0.2s; box-shadow: 0 4px 15px rgba(124,58,237,0.35);
           font-family: inherit;
         }
-        .login-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99,102,241,0.5); }
+        .login-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(124,58,237,0.45); }
         .login-submit:disabled { background: #c7d2fe; box-shadow: none; cursor: not-allowed; }
         .login-spinner {
           display: flex; align-items: center; justify-content: center; gap: 0.5rem;
@@ -217,9 +226,9 @@ const Login = () => {
           font-size: 0.9rem; color: #64748b;
         }
         .login-signup-link a {
-          color: #4f46e5; font-weight: 700; text-decoration: none;
+          color: #7c3aed; font-weight: 700; text-decoration: none;
         }
-        .login-signup-link a:hover { color: #4338ca; }
+        .login-signup-link a:hover { color: #5b21b6; }
         .login-divider {
           display: flex; align-items: center;
           gap: 0.75rem; margin: 1.25rem 0;
@@ -236,14 +245,14 @@ const Login = () => {
           font-family: inherit; background: none;
         }
         .login-cred-admin { background: #eef2ff; border-color: #c7d2fe; }
-        .login-cred-admin:hover { background: #e0e7ff; border-color: #818cf8; }
+        .login-cred-admin:hover { background: #e0e7ff; border-color: #8b5cf6; }
         .login-cred-user  { background: #ecfeff; border-color: #a5f3fc; }
         .login-cred-user:hover  { background: #cffafe; border-color: #22d3ee; }
         .login-cred-role {
           font-size: 11px; font-weight: 700;
           text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;
         }
-        .login-cred-admin .login-cred-role { color: #6366f1; }
+        .login-cred-admin .login-cred-role { color: #7c3aed; }
         .login-cred-user  .login-cred-role { color: #0891b2; }
         .login-cred-email { font-size: 12px; color: #475569; }
         .login-cred-pass  { font-size: 12px; color: #94a3b8; }
@@ -253,6 +262,8 @@ const Login = () => {
 
         {/* ══ LEFT PANEL ══ */}
         <div className="login-left">
+          {/* optional illustration on the left, change path to match your asset */}
+          <img src="/assets/login-illustration.png" alt="Welcome back" className="login-image" />
           <div className="login-blob1" />
           <div className="login-blob2" />
 
@@ -385,7 +396,7 @@ const Login = () => {
 
               <div className="login-creds">
                 <button type="button" className="login-cred-btn login-cred-admin"
-                onClick={() => fillCredentials('hemalatha080705@gmail.com', 'Hema')}>
+                onClick={() => fillCredentials('hemalatha080705@gmail.com', 'HemaG')}>
 
                   <div className="login-cred-role">hemalatha ↗</div>
                   <div className="login-cred-email">hemalatha080705@gmail.com</div>
@@ -407,3 +418,4 @@ const Login = () => {
 };
 
 export default Login;
+

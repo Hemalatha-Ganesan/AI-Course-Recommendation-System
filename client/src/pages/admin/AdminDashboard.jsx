@@ -61,7 +61,7 @@ const GRADE_COLORS = {
   'C': 'text-amber-500',
 };
 
-function Avatar({ initials, size = 'md', gradient = 'from-violet-600 to-indigo-600' }) {
+function Avatar({ initials, size = 'md', gradient = 'from-violet-600 to-purple-600' }) {
   const s = { sm: 'w-8 h-8 text-xs', md: 'w-10 h-10 text-sm', lg: 'w-12 h-12 text-base' }[size];
   return (
     <div className={`${s} rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-bold flex-shrink-0`}>
@@ -78,7 +78,7 @@ function Badge({ label }) {
   );
 }
 
-function ProgressBar({ value, color = 'from-violet-500 to-indigo-500' }) {
+function ProgressBar({ value, color = 'from-violet-500 to-purple-500' }) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -90,7 +90,7 @@ function ProgressBar({ value, color = 'from-violet-500 to-indigo-500' }) {
 }
 
 // ─── MINI CHART ─────────────────────────────────────────────────────────────
-function BarChart({ data, color = 'from-violet-600 to-indigo-600', labels }) {
+function BarChart({ data, color = 'from-violet-600 to-purple-600', labels }) {
   const max = Math.max(...data);
   return (
     <div className="h-40 flex items-end gap-1.5">
@@ -136,7 +136,7 @@ export default function AdminDashboard() {
   
   const [tab, setTab]           = useState('overview');
   const [search, setSearch]     = useState('');
-  const [roleFilter, setRoleFilter]   = useState('All');
+  const [roleFilter] = useState('All');
   const [statusFilter, setStatus] = useState('All');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [selectedCourse, setSelectedCourse]   = useState(null);
@@ -233,7 +233,7 @@ export default function AdminDashboard() {
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .tab-active { background: linear-gradient(135deg, #7c3aed, #4f46e5); color: white; box-shadow: 0 4px 12px rgba(124,58,237,0.3); }
+        .tab-active { background: linear-gradient(135deg, #7c3aed, #7c3aed); color: white; box-shadow: 0 4px 12px rgba(124,58,237,0.3); }
       `}</style>
 
       {/* NOTIFICATION */}
@@ -247,7 +247,7 @@ export default function AdminDashboard() {
       <aside className={`${sidebarOpen ? 'w-60' : 'w-16'} transition-all duration-300 flex-shrink-0 bg-white border-r border-slate-100 flex flex-col min-h-screen sticky top-0 h-screen shadow-sm`}>
         {/* Logo */}
         <div className="p-4 flex items-center gap-3 border-b border-slate-100">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white font-black text-base flex-shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center text-white font-black text-base flex-shrink-0">
             A
           </div>
           {sidebarOpen && (
@@ -293,7 +293,7 @@ export default function AdminDashboard() {
             className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-red-50 transition group"
             title="Logout"
           >
-            <Avatar initials="AD" size="sm" gradient="from-violet-600 to-indigo-600" />
+            <Avatar initials="AD" size="sm" gradient="from-violet-600 to-purple-600" />
             {sidebarOpen && (
               <div className="min-w-0 flex-1 text-left">
                 <p className="text-xs font-bold text-slate-900 truncate group-hover:text-red-700">Admin User</p>
@@ -331,7 +331,7 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => notify('Exported successfully!')}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-bold rounded-xl shadow-md hover:shadow-violet-300 hover:-translate-y-0.5 transition-all"
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-purple-600 text-white text-sm font-bold rounded-xl shadow-md hover:shadow-violet-300 hover:-translate-y-0.5 transition-all"
             >
               ↓ Export
             </button>
@@ -347,7 +347,7 @@ export default function AdminDashboard() {
               {/* Stats Row */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard title="Total Students"   value={totalStudents}           icon="🎓" gradient="bg-violet-50"  change={12.5} sub={`${activeStudents} active`} />
-                <StatCard title="Active Courses"   value={COURSES.filter(c=>c.status==='Active').length} icon="📚" gradient="bg-indigo-50" change={8.3} sub="1 in draft" />
+                <StatCard title="Active Courses"   value={COURSES.filter(c=>c.status==='Active').length} icon="📚" gradient="bg-purple-50" change={8.3} sub="1 in draft" />
                 <StatCard title="Total Enrollments" value={fmt(totalEnrolls)}      icon="📝" gradient="bg-blue-50"   change={22.8} sub="Across all courses" />
                 <StatCard title="Total Revenue"    value={currency(totalRevenue)}  icon="💰" gradient="bg-emerald-50" change={18.4} sub="This month" />
               </div>
@@ -371,7 +371,7 @@ export default function AdminDashboard() {
                     <div className="flex gap-2">
                       {['Revenue','Enrollments'].map((l,i) => (
                         <div key={l} className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
-                          <div className={`w-2.5 h-2.5 rounded-full ${i===0?'bg-violet-500':'bg-indigo-300'}`} />
+                          <div className={`w-2.5 h-2.5 rounded-full ${i===0?'bg-violet-500':'bg-purple-300'}`} />
                           {l}
                         </div>
                       ))}
@@ -380,11 +380,11 @@ export default function AdminDashboard() {
                   <div className="flex gap-4">
                     <div className="flex-1">
                       <p className="text-xs text-slate-400 mb-1 font-medium">Revenue</p>
-                      <BarChart data={REVENUE_DATA} labels={MONTHS} color="from-violet-600 to-indigo-500" />
+                      <BarChart data={REVENUE_DATA} labels={MONTHS} color="from-violet-600 to-purple-500" />
                     </div>
                     <div className="flex-1">
                       <p className="text-xs text-slate-400 mb-1 font-medium">Enrollments</p>
-                      <BarChart data={ENROLL_DATA} labels={MONTHS} color="from-indigo-400 to-blue-400" />
+                      <BarChart data={ENROLL_DATA} labels={MONTHS} color="from-purple-400 to-blue-400" />
                     </div>
                   </div>
                 </div>
@@ -395,9 +395,9 @@ export default function AdminDashboard() {
                   <div className="space-y-3">
                     {[
                       { user:'Rahul Verma',  action:'completed Web Dev Bootcamp', time:'2m',  color:'from-emerald-500 to-teal-500' },
-                      { user:'Arjun Mehta',  action:'enrolled in Machine Learning', time:'8m',  color:'from-violet-500 to-indigo-500' },
+                      { user:'Arjun Mehta',  action:'enrolled in Machine Learning', time:'8m',  color:'from-violet-500 to-purple-500' },
                       { user:'Karthik Nair', action:'scored A+ in quiz',          time:'22m', color:'from-amber-500 to-orange-500' },
-                      { user:'Priya Sharma', action:'started Data Science',       time:'1h',  color:'from-blue-500 to-indigo-500' },
+                      { user:'Priya Sharma', action:'started Data Science',       time:'1h',  color:'from-blue-500 to-purple-500' },
                       { user:'Divya K.',     action:'missed 3 assignments',       time:'2h',  color:'from-red-500 to-pink-500' },
                     ].map((a,i) => (
                       <div key={i} className="flex items-start gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors">
@@ -607,8 +607,8 @@ export default function AdminDashboard() {
                           <p className={`text-3xl font-black ${GRADE_COLORS[s.grade]}`}>{s.grade}</p>
                           <p className="text-xs text-slate-500 font-medium mt-1">Overall Grade</p>
                         </div>
-                        <div className="text-center p-3 bg-indigo-50 rounded-xl">
-                          <p className="text-3xl font-black text-indigo-600">{s.progress}%</p>
+                        <div className="text-center p-3 bg-purple-50 rounded-xl">
+                          <p className="text-3xl font-black text-purple-600">{s.progress}%</p>
                           <p className="text-xs text-slate-500 font-medium mt-1">Avg Progress</p>
                         </div>
                         <div className="text-center p-3 bg-emerald-50 rounded-xl">
@@ -635,7 +635,7 @@ export default function AdminDashboard() {
 
                     <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
                       <h3 className="font-black text-slate-900 mb-3">Activity (Last 7 Days)</h3>
-                      <BarChart data={[40,65,30,80,55,90,70]} labels={['Mon','Tue','Wed','Thu','Fri','Sat','Sun']} color="from-violet-500 to-indigo-500" />
+                      <BarChart data={[40,65,30,80,55,90,70]} labels={['Mon','Tue','Wed','Thu','Fri','Sat','Sun']} color="from-violet-500 to-purple-500" />
                     </div>
                   </div>
                 </div>
@@ -654,13 +654,13 @@ export default function AdminDashboard() {
                     </button>
                   ))}
                 </div>
-                <button onClick={() => notify('New course created!')} className="px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-bold rounded-xl shadow-md hover:shadow-violet-300 transition">+ New Course</button>
+                <button onClick={() => notify('New course created!')} className="px-4 py-2 bg-gradient-to-r from-violet-600 to-purple-600 text-white text-sm font-bold rounded-xl shadow-md hover:shadow-violet-300 transition">+ New Course</button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                 {COURSES.map(c => (
                   <div key={c.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all">
-                    <div className="h-36 bg-gradient-to-br from-violet-500 to-indigo-600 flex flex-col items-center justify-center relative">
+                    <div className="h-36 bg-gradient-to-br from-violet-500 to-purple-600 flex flex-col items-center justify-center relative">
                       <span className="text-5xl">{c.thumbnail}</span>
                       <span className="absolute top-3 left-3 text-[10px] bg-white/20 backdrop-blur text-white font-bold px-2 py-1 rounded-full">{c.category}</span>
                       <span className="absolute top-3 right-3"><Badge label={c.status} /></span>
@@ -776,7 +776,7 @@ export default function AdminDashboard() {
                 <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
                   <h3 className="font-black text-slate-900 mb-1">Monthly Enrollments</h3>
                   <p className="text-xs text-slate-400 mb-4">Full year 2024</p>
-                  <BarChart data={ENROLL_DATA} labels={MONTHS} color="from-indigo-500 to-blue-500" />
+                  <BarChart data={ENROLL_DATA} labels={MONTHS} color="from-purple-500 to-blue-500" />
                 </div>
 
                 <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
@@ -788,7 +788,7 @@ export default function AdminDashboard() {
                           <span className="truncate mr-2">{c.title}</span>
                           <span className="flex-shrink-0">{c.completionRate}%</span>
                         </div>
-                        <ProgressBar value={c.completionRate} color={c.completionRate>75?'from-emerald-500 to-teal-500':c.completionRate>50?'from-indigo-500 to-violet-500':'from-amber-500 to-orange-500'} />
+                        <ProgressBar value={c.completionRate} color={c.completionRate>75?'from-emerald-500 to-teal-500':c.completionRate>50?'from-purple-500 to-violet-500':'from-amber-500 to-orange-500'} />
                       </div>
                     ))}
                   </div>
@@ -802,7 +802,7 @@ export default function AdminDashboard() {
                     <svg width="160" height="160" viewBox="0 0 160 160">
                       {[
                         { pct:0.55, color:'#7c3aed', label:'Active' },
-                        { pct:0.25, color:'#4f46e5', label:'Completed' },
+                        { pct:0.25, color:'#7c3aed', label:'Completed' },
                         { pct:0.125,color:'#ef4444', label:'Inactive' },
                         { pct:0.075,color:'#f59e0b', label:'At Risk' },
                       ].reduce((acc,seg,i,arr) => {
@@ -822,7 +822,7 @@ export default function AdminDashboard() {
                     </svg>
                   </div>
                   <div className="space-y-2">
-                    {[['Active','55%','#7c3aed'],['Completed','25%','#4f46e5'],['Inactive','12.5%','#ef4444'],['At Risk','7.5%','#f59e0b']].map(([l,v,c])=>(
+                    {[['Active','55%','#7c3aed'],['Completed','25%','#7c3aed'],['Inactive','12.5%','#ef4444'],['At Risk','7.5%','#f59e0b']].map(([l,v,c])=>(
                       <div key={l} className="flex items-center justify-between text-xs">
                         <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full" style={{background:c}} /><span className="text-slate-600 font-medium">{l}</span></div>
                         <span className="font-bold text-slate-800">{v}</span>
@@ -838,7 +838,7 @@ export default function AdminDashboard() {
                       <div key={g} className="flex items-center gap-3">
                         <span className={`text-sm font-black w-6 ${GRADE_COLORS[g]||'text-slate-500'}`}>{g}</span>
                         <div className="flex-1 h-5 bg-slate-100 rounded-full overflow-hidden">
-                          <div className={`h-full rounded-full bg-gradient-to-r ${g.startsWith('A')?'from-emerald-500 to-teal-400':g.startsWith('B')?'from-blue-500 to-indigo-400':'from-amber-500 to-orange-400'}`}
+                          <div className={`h-full rounded-full bg-gradient-to-r ${g.startsWith('A')?'from-emerald-500 to-teal-400':g.startsWith('B')?'from-blue-500 to-purple-400':'from-amber-500 to-orange-400'}`}
                             style={{width:`${(n/STUDENTS.length)*100}%`}} />
                         </div>
                         <span className="text-xs font-bold text-slate-600 w-8 text-right">{n}</span>
@@ -913,7 +913,7 @@ export default function AdminDashboard() {
                 {[
                   { title:'Student Performance Report', desc:'Grades, progress, and at-risk analysis', icon:'📊', color:'bg-violet-50 border-violet-100' },
                   { title:'Revenue Summary',            desc:'Monthly and yearly revenue breakdown', icon:'💰', color:'bg-emerald-50 border-emerald-100' },
-                  { title:'Course Analytics',           desc:'Completion rates, ratings, and reviews', icon:'📚', color:'bg-indigo-50 border-indigo-100' },
+                  { title:'Course Analytics',           desc:'Completion rates, ratings, and reviews', icon:'📚', color:'bg-purple-50 border-purple-100' },
                   { title:'Enrollment Report',          desc:'New enrollments and dropout analysis', icon:'📝', color:'bg-blue-50 border-blue-100' },
                   { title:'Instructor Report',          desc:'Instructor performance and payouts', icon:'👩‍🏫', color:'bg-pink-50 border-pink-100' },
                   { title:'Refund & Dispute Report',    desc:'Refund requests and resolution stats', icon:'↩', color:'bg-red-50 border-red-100' },
@@ -983,7 +983,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <button onClick={() => notify('Settings saved successfully!')} className="w-full py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold text-sm rounded-xl shadow-md hover:shadow-violet-300 hover:-translate-y-0.5 transition-all">
+              <button onClick={() => notify('Settings saved successfully!')} className="w-full py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold text-sm rounded-xl shadow-md hover:shadow-violet-300 hover:-translate-y-0.5 transition-all">
                 Save All Settings
               </button>
             </div>
@@ -994,3 +994,4 @@ export default function AdminDashboard() {
     </div>
   );
 }
+

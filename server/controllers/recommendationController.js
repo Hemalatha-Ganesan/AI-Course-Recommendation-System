@@ -11,6 +11,8 @@ exports.getRecommendations = async (req, res) => {
     const userId = req.user._id;
     const limit = parseInt(req.query.limit) || 10;
 
+    console.log(`🎯 Fetching personalized recommendations for user: ${userId}`);
+
     // Check if we have cached recommendations
     const cachedRecommendations = await Recommendation.findOne({
       user: userId,
@@ -18,6 +20,7 @@ exports.getRecommendations = async (req, res) => {
     }).populate('recommendedCourses.course');
 
     if (cachedRecommendations) {
+      console.log(`📦 Found cached recommendations: ${cachedRecommendations.recommendedCourses.length} courses`);
       return res.status(200).json({
         success: true,
         data: cachedRecommendations.recommendedCourses.slice(0, limit),
@@ -26,7 +29,10 @@ exports.getRecommendations = async (req, res) => {
     }
 
     // Generate new recommendations
+    console.log('🔄 Generating new recommendations...');
     const recommendations = await generateRecommendations(userId, limit);
+
+    console.log(`✅ Generated ${recommendations.length} recommendations`);
 
     // Cache the recommendations
     await Recommendation.findOneAndUpdate(
@@ -46,6 +52,7 @@ exports.getRecommendations = async (req, res) => {
       cached: false
     });
   } catch (error) {
+    console.error('❌ Error in getRecommendations:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching recommendations',
@@ -150,8 +157,10 @@ exports.getTrendingCourses = async (req, res) => {
     const daysAgo = new Date();
     daysAgo.setDate(daysAgo.getDate() - 30); // Last 30 days
 
+    console.log(`📊 Fetching trending courses with limit: ${limit}`);
+
     // Get courses with most recent enrollments
-    const trendingCourses = await Enrollment.aggregate([
+    let trendingCourses = await Enrollment.aggregate([
       {
         $match: {
           enrolledAt: { $gte: daysAgo }
@@ -190,17 +199,31 @@ exports.getTrendingCourses = async (req, res) => {
       }
     ]);
 
-    await Course.populate(trendingCourses, {
-      path: 'instructor',
-      select: 'name email'
-    });
+    console.log(`📈 Found ${trendingCourses.length} trending courses`);
 
+    // If no trending courses found, fall back to highly-rated published courses
+    if (trendingCourses.length === 0) {
+      console.log('⬇️  Falling back to highly-rated published courses');
+      trendingCourses = await Course.find({ isPublished: true })
+        .populate('instructor', 'name email')
+        .sort({ rating: -1, enrolledStudents: -1 })
+        .limit(limit);
+      console.log(`✅ Found ${trendingCourses.length} highly-rated courses`);
+    } else {
+      await Course.populate(trendingCourses, {
+        path: 'instructor',
+        select: 'name email'
+      });
+    }
+
+    console.log(`🎯 Returning ${trendingCourses.length} courses`);
     res.status(200).json({
       success: true,
       count: trendingCourses.length,
       data: trendingCourses
     });
   } catch (error) {
+    console.error('❌ Error in getTrendingCourses:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching trending courses',
@@ -312,8 +335,28 @@ async function generateRecommendations(userId, limit) {
     }
   });
 
+  // If still not enough recommendations, add more highly-rated courses
+  if (recommendations.length < limit) {
+    const additionalCourses = await Course.find({
+      _id: { $nin: Array.from(usedCourseIds) },
+      isPublished: true
+    })
+      .populate('instructor', 'name email')
+      .sort({ rating: -1, enrolledStudents: -1 })
+      .limit(limit - recommendations.length);
+
+    additionalCourses.forEach(course => {
+      recommendations.push({
+        course: course,
+        score: 5,
+        reason: 'highly_rated'
+      });
+    });
+  }
+
   // Sort by score and return top N
   recommendations.sort((a, b) => b.score - a.score);
+  console.log(`📝 Final recommendations: ${recommendations.length} courses`);
   return recommendations.slice(0, limit);
 }
 

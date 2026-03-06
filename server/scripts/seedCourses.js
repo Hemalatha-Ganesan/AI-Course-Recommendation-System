@@ -39,7 +39,7 @@ async function seed() {
         level: 'Beginner',
         price: 149,
         duration: 40,
-        thumbnail: '',
+        thumbnail: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=500&h=300&fit=crop',
         isPublished: true,
       },
       {
@@ -50,7 +50,7 @@ async function seed() {
         level: 'Beginner',
         price: 99,
         duration: 60,
-        thumbnail: '',
+        thumbnail: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=500&h=300&fit=crop',
         isPublished: true,
       },
       {
@@ -61,7 +61,40 @@ async function seed() {
         level: 'Intermediate',
         price: 129,
         duration: 50,
-        thumbnail: '',
+        thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500&h=300&fit=crop',
+        isPublished: true,
+      },
+      {
+        title: 'React Modern Web Development',
+        description: 'Build dynamic web applications with React, hooks, and modern patterns.',
+        instructor: instructor._id,
+        category: 'Development',
+        level: 'Intermediate',
+        price: 179,
+        duration: 45,
+        thumbnail: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=500&h=300&fit=crop',
+        isPublished: true,
+      },
+      {
+        title: 'UI/UX Design Masterclass',
+        description: 'Learn user interface and experience design principles with Figma.',
+        instructor: instructor._id,
+        category: 'Design',
+        level: 'Beginner',
+        price: 89,
+        duration: 30,
+        thumbnail: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=500&h=300&fit=crop',
+        isPublished: true,
+      },
+      {
+        title: 'Digital Marketing Strategy',
+        description: 'Master digital marketing with SEO, social media, and content marketing.',
+        instructor: instructor._id,
+        category: 'Marketing',
+        level: 'Beginner',
+        price: 79,
+        duration: 25,
+        thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500&h=300&fit=crop',
         isPublished: true,
       }
     ];
@@ -76,3 +109,4 @@ async function seed() {
 }
 
 seed();
+

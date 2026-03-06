@@ -1,7 +1,7 @@
 // routes/recommendationRoutes.js
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware');
+const { protect } = require('../middleware/authMiddleware');
 const {
   getRecommendations,
   getCourseBasedRecommendations,
@@ -11,7 +11,7 @@ const {
 } = require('../controllers/recommendationController');
 
 // Get personalized recommendations for logged-in user
-router.get('/personalized', authMiddleware, getRecommendations);
+router.get('/personalized', protect, getRecommendations);
 
 // Search-based recommendations
 router.get('/search', searchRecommendations);

@@ -81,7 +81,7 @@ const Signup = () => {
         }
 
         .signup-left {
-          background: linear-gradient(145deg, #4338ca 0%, #6d28d9 50%, #7c3aed 100%);
+          background: linear-gradient(145deg, #5b21b6 0%, #6d28d9 50%, #7c3aed 100%);
           padding: 3rem;
           display: flex; flex-direction: column;
           justify-content: space-between;
@@ -118,6 +118,16 @@ const Signup = () => {
           background: rgba(255,255,255,0.1);
           border: 1px solid rgba(255,255,255,0.15);
           border-radius: 12px;
+        }
+        .signup-image {
+          max-width: 100%;
+          margin-bottom: 2rem;
+          border-radius: 1rem;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        @media (max-width: 1024px) {
+          .signup-image { display: none; }
+        }
           display: flex; align-items: center; justify-content: center;
         }
         .signup-feature-title { font-weight: 600; font-size: 1rem; margin-bottom: 0.2rem; }
@@ -125,7 +135,7 @@ const Signup = () => {
         .signup-trusted { color: rgba(255,255,255,0.55); font-size: 0.85rem; position: relative; z-index: 1; }
 
         .signup-right {
-          background: #f1f5f9;
+          background: #f5f3ff;
           display: flex; align-items: center;
           justify-content: center; padding: 2rem;
           min-height: 100vh;
@@ -135,7 +145,7 @@ const Signup = () => {
         @media (max-width: 1024px) { .signup-mobile-logo { display: block; } }
         .signup-mobile-logo h1 {
           font-size: 1.875rem; font-weight: 900;
-          background: linear-gradient(to right, #4f46e5, #7c3aed);
+          background: linear-gradient(to right, #7c3aed, #7c3aed);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
           margin-bottom: 0.25rem;
         }
@@ -160,10 +170,10 @@ const Signup = () => {
           width: 100%; padding: 0.875rem 1rem;
           border: 2px solid #e2e8f0; border-radius: 0.75rem;
           font-size: 0.95rem; outline: none;
-          background: #f8fafc; color: #0f172a;
+          background: #faf5ff; color: #3b0764;
           transition: all 0.2s; box-sizing: border-box; font-family: inherit;
         }
-        .signup-input:focus { border-color: #6366f1; background: #fff; box-shadow: 0 0 0 4px rgba(99,102,241,0.1); }
+        .signup-input:focus { border-color: #7c3aed; background: #fff; box-shadow: 0 0 0 4px rgba(124,58,237,0.14); }
         .signup-input-wrap { position: relative; }
         .signup-eye {
           position: absolute; right: 0.875rem; top: 50%;
@@ -181,10 +191,10 @@ const Signup = () => {
         .signup-match { margin-top: 0.4rem; font-size: 0.8rem; font-weight: 500; display: flex; align-items: center; gap: 0.3rem; }
         .signup-submit {
           width: 100%; padding: 0.95rem; color: white;
-          background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+          background: linear-gradient(135deg, #7c3aed 0%, #7c3aed 100%);
           border: none; border-radius: 0.75rem;
           font-size: 1rem; font-weight: 700; cursor: pointer;
-          transition: all 0.2s; box-shadow: 0 4px 15px rgba(99,102,241,0.4);
+          transition: all 0.2s; box-shadow: 0 4px 15px rgba(124,58,237,0.35);
           font-family: inherit; margin-top: 0.25rem;
         }
         .signup-submit:hover:not(:disabled) { transform: translateY(-2px); }
@@ -192,10 +202,10 @@ const Signup = () => {
         .signup-spinner { display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
         .signup-spin { animation: signupSpin 1s linear infinite; }
         .signup-signin-link { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: #64748b; }
-        .signup-signin-link a { color: #4f46e5; font-weight: 700; text-decoration: none; }
-        .signup-signin-link a:hover { color: #4338ca; }
+        .signup-signin-link a { color: #7c3aed; font-weight: 700; text-decoration: none; }
+        .signup-signin-link a:hover { color: #5b21b6; }
         .signup-terms { text-align: center; margin-top: 1rem; font-size: 0.75rem; color: #94a3b8; }
-        .signup-terms span { color: #4f46e5; cursor: pointer; }
+        .signup-terms span { color: #7c3aed; cursor: pointer; }
         .signup-terms span:hover { text-decoration: underline; }
       `}</style>
 
@@ -203,6 +213,8 @@ const Signup = () => {
 
         {/* ══ LEFT PANEL ══ */}
         <div className="signup-left">
+          {/* insert illustration; replace src with your own image or static asset path */}
+          <img src="/assets/signup-illustration.png" alt="Learning illustration" className="signup-image" />
           <div className="signup-blob1" />
           <div className="signup-blob2" />
 

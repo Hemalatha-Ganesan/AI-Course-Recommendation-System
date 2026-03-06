@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 const generateToken = (id) => {
   if (!process.env.JWT_SECRET) {
@@ -13,9 +14,11 @@ const generateToken = (id) => {
 exports.registerUser = async (req, res) => {
   try {
     const { username, email, password } = req.body;
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    const normalizedUsername = String(username || '').trim();
 
     // Validation
-    if (!username || !email || !password) {
+    if (!normalizedUsername || !normalizedEmail || !password) {
       return res.status(400).json({ 
         success: false,
         message: 'Please provide username, email, and password' 
@@ -24,13 +27,13 @@ exports.registerUser = async (req, res) => {
 
     // Check if user already exists
     const existingUser = await User.findOne({ 
-      $or: [{ email }, { username }] 
+      $or: [{ email: normalizedEmail }, { username: normalizedUsername }] 
     });
 
     if (existingUser) {
       return res.status(400).json({ 
         success: false,
-        message: existingUser.email === email 
+        message: existingUser.email === normalizedEmail 
           ? 'User with this email already exists' 
           : 'Username already taken'
       });
@@ -38,8 +41,8 @@ exports.registerUser = async (req, res) => {
 
     // Create user
     const user = await User.create({
-      username,
-      email,
+      username: normalizedUsername,
+      email: normalizedEmail,
       password
     });
 
@@ -64,16 +67,31 @@ exports.registerUser = async (req, res) => {
 
 exports.loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, username, password } = req.body;
+    const identifierRaw = String(email || username || '').trim();
+    const normalizedEmail = identifierRaw.toLowerCase();
 
-    if (!email || !password) {
+    if (!identifierRaw || !password) {
       return res.status(400).json({ 
         success: false,
-        message: 'Please provide email and password' 
+        message: 'Please provide email/username and password' 
       });
     }
 
-    const user = await User.findOne({ email }).select('+password');
+    let user = await User.findOne({
+      $or: [
+        { email: normalizedEmail },
+        { username: identifierRaw }
+      ]
+    }).select('+password');
+
+    if (!user) {
+      // Backward-compatibility for legacy records with mixed case/extra spaces in email.
+      const escapedEmail = normalizedEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      user = await User.findOne({
+        email: { $regex: `^\\s*${escapedEmail}\\s*$`, $options: 'i' }
+      }).select('+password');
+    }
 
     if (!user) {
       return res.status(401).json({ 
@@ -82,7 +100,17 @@ exports.loginUser = async (req, res) => {
       });
     }
 
-    const isMatch = await user.comparePassword(password);
+    let isMatch = await user.comparePassword(password);
+
+    // Backward-compatibility for legacy users saved with plain-text passwords.
+    if (!isMatch && typeof user.password === 'string' && !user.password.startsWith('$2')) {
+      isMatch = user.password === password;
+      if (isMatch) {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+        await User.updateOne({ _id: user._id }, { $set: { password: hashedPassword } });
+      }
+    }
 
     if (!isMatch) {
       return res.status(401).json({ 

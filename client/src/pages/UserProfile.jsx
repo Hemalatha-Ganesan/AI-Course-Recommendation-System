@@ -8,6 +8,7 @@ const UserProfile = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [editMode, setEditMode] = useState(false);
+  const [courseSearch, setCourseSearch] = useState('');
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -42,7 +43,7 @@ const UserProfile = () => {
           </h2>
           <Link
             to="/login"
-            className="inline-block px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
+            className="inline-block px-6 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition"
           >
             Go to Login
           </Link>
@@ -59,6 +60,17 @@ const UserProfile = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setFormData((prev) => ({ ...prev, profileImage: reader.result }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSaveProfile = () => {
@@ -91,13 +103,30 @@ const UserProfile = () => {
     },
   };
 
+  const learningCourses = [
+    { course: 'Web Development Bootcamp', progress: 85, instructor: 'David Lee' },
+    { course: 'Machine Learning Fundamentals', progress: 60, instructor: 'Sarah Smith' },
+    { course: 'Data Science with Python', progress: 45, instructor: 'Sarah Smith' },
+    { course: 'UI/UX Design Masterclass', progress: 100, instructor: 'Emma Chen' },
+    { course: 'Cloud Architecture & AWS', progress: 30, instructor: 'James Wilson' },
+  ];
+
+  const filteredLearningCourses = learningCourses.filter((item) => {
+    const q = courseSearch.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      item.course.toLowerCase().includes(q) ||
+      item.instructor.toLowerCase().includes(q)
+    );
+  });
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-50 to-purple-50">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-indigo-600 via-indigo-600 to-purple-600 text-white py-12">
+      <div className="bg-gradient-to-r from-purple-600 via-purple-600 to-purple-600 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl font-bold">My Profile</h1>
-          <p className="text-indigo-100 text-lg mt-2">Manage your account and preferences</p>
+          <p className="text-purple-100 text-lg mt-2">Manage your account and preferences</p>
         </div>
       </div>
 
@@ -109,8 +138,16 @@ const UserProfile = () => {
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 sticky top-4">
               {/* Profile Avatar */}
               <div className="flex flex-col items-center text-center">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white text-4xl font-bold mb-4">
-                  {user?.username ? user.username.charAt(0).toUpperCase() : 'U'}
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-600 to-purple-600 flex items-center justify-center text-white text-4xl font-bold mb-4 overflow-hidden">
+                  {formData.profileImage ? (
+                    <img
+                      src={formData.profileImage}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    user?.username ? user.username.charAt(0).toUpperCase() : 'U'
+                  )}
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900">{user?.username}</h2>
                 <p className="text-gray-600 text-sm mt-1">{user?.email}</p>
@@ -134,7 +171,7 @@ const UserProfile = () => {
                     onClick={() => setActiveTab(tab.id)}
                     className={`w-full text-left px-4 py-3 rounded-xl font-medium transition-all ${
                       activeTab === tab.id
-                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white'
+                        ? 'bg-gradient-to-r from-purple-600 to-purple-600 text-white'
                         : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
@@ -163,7 +200,7 @@ const UserProfile = () => {
 
                 {/* Progress Overview Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-gradient-to-br from-violet-50 to-indigo-50 rounded-2xl p-6 border border-violet-100 shadow-sm hover:shadow-md transition">
+                  <div className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-2xl p-6 border border-violet-100 shadow-sm hover:shadow-md transition">
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-sm font-bold text-violet-700 uppercase tracking-wider">Total Courses</p>
                       <span className="text-3xl">📚</span>
@@ -193,15 +230,18 @@ const UserProfile = () => {
 
                 {/* Learning Progress */}
                 <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6">📖 Learning Progress</h3>
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                    <h3 className="text-2xl font-bold text-gray-900">📖 Learning Progress</h3>
+                    <input
+                      type="text"
+                      value={courseSearch}
+                      onChange={(e) => setCourseSearch(e.target.value)}
+                      placeholder="Search course or instructor..."
+                      className="w-full md:w-80 px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
+                    />
+                  </div>
                   <div className="space-y-4">
-                    {[
-                      { course: 'Web Development Bootcamp', progress: 85, instructor: 'David Lee' },
-                      { course: 'Machine Learning Fundamentals', progress: 60, instructor: 'Sarah Smith' },
-                      { course: 'Data Science with Python', progress: 45, instructor: 'Sarah Smith' },
-                      { course: 'UI/UX Design Masterclass', progress: 100, instructor: 'Emma Chen' },
-                      { course: 'Cloud Architecture & AWS', progress: 30, instructor: 'James Wilson' },
-                    ].map((item, idx) => (
+                    {filteredLearningCourses.map((item, idx) => (
                       <div key={idx} className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100/50 transition">
                         <div className="flex items-start justify-between mb-3">
                           <div>
@@ -221,7 +261,7 @@ const UserProfile = () => {
                           <div
                             className={`h-full rounded-full transition-all duration-500 ${
                               item.progress === 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-500' :
-                              item.progress >= 75 ? 'bg-gradient-to-r from-blue-500 to-indigo-500' :
+                              item.progress >= 75 ? 'bg-gradient-to-r from-blue-500 to-purple-500' :
                               item.progress >= 50 ? 'bg-gradient-to-r from-amber-500 to-orange-500' :
                               'bg-gradient-to-r from-orange-500 to-red-500'
                             }`}
@@ -230,6 +270,11 @@ const UserProfile = () => {
                         </div>
                       </div>
                     ))}
+                    {filteredLearningCourses.length === 0 && (
+                      <div className="p-4 bg-gray-50 rounded-xl text-sm text-gray-600">
+                        No matching courses found for "{courseSearch}".
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -240,7 +285,7 @@ const UserProfile = () => {
                     {!editMode && (
                       <button
                         onClick={() => setEditMode(true)}
-                        className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
+                        className="px-6 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition"
                       >
                         Edit Profile
                       </button>
@@ -256,7 +301,7 @@ const UserProfile = () => {
                           name="username"
                           value={formData.username}
                           onChange={handleInputChange}
-                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
                         />
                       </div>
 
@@ -267,7 +312,7 @@ const UserProfile = () => {
                           name="email"
                           value={formData.email}
                           onChange={handleInputChange}
-                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
                         />
                       </div>
 
@@ -279,7 +324,7 @@ const UserProfile = () => {
                           value={formData.phone}
                           onChange={handleInputChange}
                           placeholder="Enter your phone number"
-                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
                         />
                       </div>
 
@@ -291,14 +336,39 @@ const UserProfile = () => {
                           onChange={handleInputChange}
                           placeholder="Tell us about yourself..."
                           rows="4"
-                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all resize-none"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all resize-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Professional Photo (URL)</label>
+                        <input
+                          type="url"
+                          name="profileImage"
+                          value={formData.profileImage}
+                          onChange={handleInputChange}
+                          placeholder="https://your-image-link.com/profile.jpg or /assets/profile.jpg"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
+                        />
+                        <p className="text-xs text-gray-500 mt-2">
+                          You can keep images in `client/public/assets/` and use `/assets/your-photo.jpg`.
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Upload Photo</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoUpload}
+                          className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-purple-500 outline-none transition-all bg-white"
                         />
                       </div>
 
                       <div className="flex gap-4">
                         <button
                           onClick={handleSaveProfile}
-                          className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all"
+                          className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-purple-700 transition-all"
                         >
                           Save Changes
                         </button>
@@ -358,7 +428,7 @@ const UserProfile = () => {
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" defaultChecked className="sr-only peer" />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
                     </label>
                   </div>
 
@@ -370,7 +440,7 @@ const UserProfile = () => {
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" className="sr-only peer" />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
                     </label>
                   </div>
 
@@ -382,14 +452,14 @@ const UserProfile = () => {
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" defaultChecked className="sr-only peer" />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
                     </label>
                   </div>
 
                   {/* Theme Selection */}
                   <div className="p-4 bg-gray-50 rounded-xl">
                     <p className="font-semibold text-gray-900 mb-3">Theme</p>
-                    <select className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-indigo-500 outline-none">
+                    <select className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 outline-none">
                       <option>Light (Default)</option>
                       <option>Dark</option>
                       <option>Auto</option>
@@ -399,7 +469,7 @@ const UserProfile = () => {
                   {/* Language Selection */}
                   <div className="p-4 bg-gray-50 rounded-xl">
                     <p className="font-semibold text-gray-900 mb-3">Language</p>
-                    <select className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-indigo-500 outline-none">
+                    <select className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 outline-none">
                       <option>English</option>
                       <option>Spanish</option>
                       <option>French</option>
@@ -407,7 +477,7 @@ const UserProfile = () => {
                     </select>
                   </div>
 
-                  <button className="w-full px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all">
+                  <button className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-purple-700 transition-all">
                     Save Preferences
                   </button>
                 </div>
@@ -426,7 +496,7 @@ const UserProfile = () => {
                         <p className="font-semibold text-gray-900">Password</p>
                         <p className="text-sm text-gray-600">Last changed 3 months ago</p>
                       </div>
-                      <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition">
+                      <button className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition">
                         Change Password
                       </button>
                     </div>
@@ -521,7 +591,7 @@ const UserProfile = () => {
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
-                            className="bg-gradient-to-r from-indigo-600 to-purple-600 h-2 rounded-full"
+                            className="bg-gradient-to-r from-purple-600 to-purple-600 h-2 rounded-full"
                             style={{ width: `${item.percentage}%` }}
                           />
                         </div>
