@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { courseAPI } from '../api/api';
 import { UserContext } from '../contexts/UserContext';
 import useUserActivity from '../hooks/useUserActivity';
 import Loader from '../components/Loader';
-import { FaStar, FaClock, FaUsers, FaBook } from 'react-icons/fa';
+import { FaStar, FaClock, FaUsers, FaBook, FaPlay, FaGraduationCap } from 'react-icons/fa';
 
 const CourseDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const {isAuthenticated } = useContext(UserContext);
+  const { isAuthenticated } = useContext(UserContext);
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
@@ -45,13 +45,17 @@ const CourseDetails = () => {
     try {
       await courseAPI.enrollCourse(id);
       setEnrolled(true);
-      alert('Successfully enrolled!');
+      alert('Successfully enrolled! You can now start learning.');
     } catch (error) {
       console.error('Failed to enroll:', error);
       alert('Failed to enroll. Please try again.');
     } finally {
       setEnrolling(false);
     }
+  };
+
+  const handleStartLearning = () => {
+    navigate(`/courses/${id}/learn`);
   };
 
   if (loading) {
@@ -117,8 +121,13 @@ const CourseDetails = () => {
         </div>
 
         {enrolled ? (
-          <div className="enrolled-badge">
-            ✓ Already Enrolled
+          <div className="enrolled-actions">
+            <button
+              className="start-learning-btn"
+              onClick={handleStartLearning}
+            >
+              <FaPlay /> Continue Learning
+            </button>
           </div>
         ) : (
           <button

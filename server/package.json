@@ -9,6 +9,7 @@
     "dev": "nodemon app.js",
     "seed-admin": "node scripts/seedAdmin.js",
     "seed-courses": "node scripts/seedCourses.js",
+    "seed-content": "node scripts/seedCourseContent.js",
     "seed-udemy": "node scripts/seedUdemyDataset.js"
   },
   "keywords": [],

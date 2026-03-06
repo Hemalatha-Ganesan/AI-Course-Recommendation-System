@@ -14,6 +14,7 @@ import Dashboard from './pages/Dashboard';
 import UserProfile from './pages/UserProfile';
 import Courses from './pages/Courses';
 import CourseDetails from './pages/CourseDetails';
+import CourseContent from './pages/CourseContent';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -59,6 +60,13 @@ function App() {
               <Navbar />
               <main><CourseDetails /></main>
               <Footer />
+            </div>
+          } />
+
+          {/* Course Learning Path */}
+          <Route path="/courses/:courseId/learn" element={
+            <div className="App">
+              <main><CourseContent /></main>
             </div>
           } />
 

@@ -516,6 +516,19 @@
     @apply text-white py-5 text-center rounded-lg text-xl font-semibold;
     background: #10b981;
   }
+
+  .enrolled-actions {
+    @apply flex flex-col gap-4;
+  }
+
+  .start-learning-btn {
+    @apply w-full py-5 text-white border-none rounded-lg text-xl font-semibold cursor-pointer transition-opacity duration-300 flex items-center justify-center gap-3;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  }
+
+  .start-learning-btn:hover {
+    @apply opacity-90;
+  }
 }
 
 /* ==================== KEYFRAMES (outside layers) ==================== */

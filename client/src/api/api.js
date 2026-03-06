@@ -63,8 +63,27 @@ export const courseAPI = {
   getTotalCoursesCount: () => API.get('/courses/count'),
   enrollCourse: (courseId) => API.post(`/courses/${courseId}/enroll`),
   getEnrolledCourses: () => API.get('/courses/user/enrolled'),
+  getMyLearning: () => API.get('/courses/user/learning'),
   updateCourseProgress: (courseId, payload) => API.put(`/courses/${courseId}/progress`, payload),
   rateCourse: (courseId, rating, review) => API.post('/ratings', { courseId, rating, review }),
+};
+
+// 📚 COURSE CONTENT API (Learning Path)
+export const contentAPI = {
+  // Get course content with sections and lessons
+  getCourseContent: (courseId) => API.get(`/courses/${courseId}/content`),
+  
+  // Get specific lesson content
+  getLesson: (courseId, sectionIndex, lessonIndex) => 
+    API.get(`/courses/${courseId}/content/lessons/${sectionIndex}/${lessonIndex}`),
+  
+  // Update lesson progress (watch time, completion)
+  updateLessonProgress: (courseId, sectionIndex, lessonIndex, data) => 
+    API.put(`/courses/${courseId}/content/lessons/${sectionIndex}/${lessonIndex}/progress`, data),
+  
+  // Update course content (admin/instructor)
+  updateCourseContent: (courseId, sections) => 
+    API.put(`/courses/${courseId}/content`, { sections }),
 };
 
 // 🎯 RECOMMENDATION API
