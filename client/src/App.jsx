@@ -6,6 +6,7 @@ import { UserProvider } from './contexts/UserContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import AdminRoute from './components/AdminRoute';
+import AdminLayout from './components/AdminLayout';
 
 // User Pages
 import Login from './pages/Login';
@@ -19,6 +20,7 @@ import CourseContent from './pages/CourseContent';
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ManageUsers from './pages/admin/ManageUsers';
+import ManageCourses from './pages/admin/ManageCourses';
 
 function App() {
   return (
@@ -79,6 +81,11 @@ function App() {
           <Route path="/admin/users" element={
             <AdminRoute>
               <ManageUsers />
+            </AdminRoute>
+          } />
+          <Route path="/admin/courses" element={
+            <AdminRoute>
+              <ManageCourses />
             </AdminRoute>
           } />
 

@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { UserContext } from '../contexts/UserContext';
 import { Link, useNavigate } from 'react-router-dom';
+import { courseAPI } from '../api/api';
 import Loader from '../components/Loader';
 
 const UserProfile = () => {
@@ -30,9 +31,27 @@ const UserProfile = () => {
     }
   }, [user]);
 
-  if (loading) {
-    return <Loader />;
-  }
+  const [myLearningCourses, setMyLearningCourses] = useState([]);
+  const [myLearningLoading, setMyLearningLoading] = useState(true);
+  const [myLearningError, setMyLearningError] = useState('');
+
+  // Fetch real enrolled courses with progress
+  useEffect(() => {
+    const fetchLearningCourses = async () => {
+      try {
+        setMyLearningLoading(true);
+        const response = await courseAPI.getMyLearning();
+        setMyLearningCourses(response.data.data || []);
+      } catch (error) {
+        setMyLearningError('Failed to load learning courses');
+        console.error('Learning courses error:', error);
+      } finally {
+        setMyLearningLoading(false);
+      }
+    };
+
+    fetchLearningCourses();
+  }, []);
 
   if (!user) {
     return (
@@ -61,6 +80,7 @@ const UserProfile = () => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+
 
   const handlePhotoUpload = (e) => {
     const file = e.target.files?.[0];
@@ -103,22 +123,19 @@ const UserProfile = () => {
     },
   };
 
-  const learningCourses = [
-    { course: 'Web Development Bootcamp', progress: 85, instructor: 'David Lee' },
-    { course: 'Machine Learning Fundamentals', progress: 60, instructor: 'Sarah Smith' },
-    { course: 'Data Science with Python', progress: 45, instructor: 'Sarah Smith' },
-    { course: 'UI/UX Design Masterclass', progress: 100, instructor: 'Emma Chen' },
-    { course: 'Cloud Architecture & AWS', progress: 30, instructor: 'James Wilson' },
-  ];
 
-  const filteredLearningCourses = learningCourses.filter((item) => {
+  const filteredLearningCourses = myLearningCourses.filter((item) => {
     const q = courseSearch.trim().toLowerCase();
     if (!q) return true;
     return (
-      item.course.toLowerCase().includes(q) ||
-      item.instructor.toLowerCase().includes(q)
+      item.title?.toLowerCase().includes(q) ||
+      item.instructor?.username?.toLowerCase().includes(q)
     );
   });
+
+
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-50 to-purple-50">
@@ -228,6 +245,7 @@ const UserProfile = () => {
                   </div>
                 </div>
 
+
                 {/* Learning Progress */}
                 <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
@@ -236,47 +254,77 @@ const UserProfile = () => {
                       type="text"
                       value={courseSearch}
                       onChange={(e) => setCourseSearch(e.target.value)}
-                      placeholder="Search course or instructor..."
+                      placeholder="Search enrolled courses..."
                       className="w-full md:w-80 px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
                     />
                   </div>
-                  <div className="space-y-4">
-                    {filteredLearningCourses.map((item, idx) => (
-                      <div key={idx} className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100/50 transition">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <p className="font-bold text-gray-900">{item.course}</p>
-                            <p className="text-xs text-gray-500">by {item.instructor}</p>
+                  {myLearningLoading ? (
+                    <div className="flex justify-center py-12">
+                      <Loader />
+                    </div>
+                  ) : myLearningError ? (
+                    <div className="text-center py-12 text-orange-600">
+                      {myLearningError}
+                      <button 
+                        onClick={() => window.location.reload()}
+                        className="ml-2 underline hover:no-underline"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  ) : filteredLearningCourses.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500">
+                      <p className="text-lg mb-4">No enrolled courses yet</p>
+                      <Link 
+                        to="/courses"
+                        className="inline-block px-6 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition"
+                      >
+                        Explore Courses
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {filteredLearningCourses.map((item, idx) => (
+                        <div key={item._id || idx} className="p-4 bg-gray-50 rounded-xl hover:bg-gray-100/50 transition">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <p className="font-bold text-gray-900 truncate">{item.title}</p>
+                              <p className="text-xs text-gray-500 truncate">{item.instructor?.username || 'Unknown'}</p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                {item.completedLessons || 0}/{item.totalLessons} lessons
+                              </p>
+                            </div>
+                            <span className={`text-sm font-black px-3 py-1 rounded-full ml-4 ${
+                              item.progress >= 100 ? 'bg-emerald-100 text-emerald-700' :
+                              item.progress >= 75 ? 'bg-blue-100 text-blue-700' :
+                              item.progress >= 50 ? 'bg-amber-100 text-amber-700' :
+                              'bg-orange-100 text-orange-700'
+                            }`}>
+                              {Math.round(item.progress)}%
+                            </span>
                           </div>
-                          <span className={`text-sm font-black px-3 py-1 rounded-full ${
-                            item.progress === 100 ? 'bg-emerald-100 text-emerald-700' :
-                            item.progress >= 75 ? 'bg-blue-100 text-blue-700' :
-                            item.progress >= 50 ? 'bg-amber-100 text-amber-700' :
-                            'bg-orange-100 text-orange-700'
-                          }`}>
-                            {item.progress}%
-                          </span>
+                          <div className="w-full bg-gray-200 h-2.5 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-500 ${
+                                item.progress >= 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-500' :
+                                item.progress >= 75 ? 'bg-gradient-to-r from-blue-500 to-purple-500' :
+                                item.progress >= 50 ? 'bg-gradient-to-r from-amber-500 to-orange-500' :
+                                'bg-gradient-to-r from-orange-500 to-red-500'
+                              }`}
+                              style={{ width: `${item.progress}%` }}
+                            />
+                          </div>
+                          <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+                            <span>Time spent: {Math.floor(item.totalTimeSpent / 60)} min</span>
+                            <span>•</span>
+                            <span>Last accessed: {item.lastAccessedAt ? new Date(item.lastAccessedAt).toLocaleDateString() : 'Never'}</span>
+                          </div>
                         </div>
-                        <div className="w-full bg-gray-200 h-2.5 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all duration-500 ${
-                              item.progress === 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-500' :
-                              item.progress >= 75 ? 'bg-gradient-to-r from-blue-500 to-purple-500' :
-                              item.progress >= 50 ? 'bg-gradient-to-r from-amber-500 to-orange-500' :
-                              'bg-gradient-to-r from-orange-500 to-red-500'
-                            }`}
-                            style={{ width: `${item.progress}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                    {filteredLearningCourses.length === 0 && (
-                      <div className="p-4 bg-gray-50 rounded-xl text-sm text-gray-600">
-                        No matching courses found for "{courseSearch}".
-                      </div>
-                    )}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
+
 
                 {/* Profile Information Section */}
                 <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">

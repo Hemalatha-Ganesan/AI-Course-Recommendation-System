@@ -16,6 +16,7 @@ const CourseContent = () => {
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
   const [videoProgress, setVideoProgress] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [updatingProgress, setUpdatingProgress] = useState(false);
 
   useEffect(() => {
     fetchCourseContent();
@@ -72,9 +73,13 @@ const CourseContent = () => {
     await updateProgress(true);
   };
 
-  const updateProgress = async (completed = false) => {
+  const updateProgress = async (completed = false, watchedDurationOverride = null) => {
+    setUpdatingProgress(true);
     try {
-      const watchedSeconds = (videoProgress / 100) * (currentLesson?.videoDuration * 60 || 0);
+      // Use override or calculate from video progress (assume full for manual complete)
+      const watchedSeconds = watchedDurationOverride !== null 
+        ? watchedDurationOverride 
+        : Math.max((videoProgress / 100) * (currentLesson?.videoDuration * 60 || 0), currentLesson?.videoDuration * 30 || 1800); // Min 30min
       
       await contentAPI.updateLessonProgress(
         courseId,
@@ -86,11 +91,14 @@ const CourseContent = () => {
         }
       );
       
-      // Refresh progress
+      // Refresh full progress to sync syllabus + overall %
       const progressRes = await contentAPI.getCourseContent(courseId);
       setProgress(progressRes.data.data.progress);
     } catch (error) {
       console.error('Error updating progress:', error);
+      alert('Failed to update progress. Please try again.');
+    } finally {
+      setUpdatingProgress(false);
     }
   };
 
@@ -231,14 +239,20 @@ const CourseContent = () => {
                 </div>
                 
                 <button
-                  onClick={() => updateProgress(!isLessonCompleted(currentSectionIndex, currentLessonIndex))}
-                  className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
+                  onClick={async () => {
+                    const currentlyCompleted = isLessonCompleted(currentSectionIndex, currentLessonIndex);
+                    await updateProgress(!currentlyCompleted);
+                  }}
+                  disabled={updatingProgress}
+                  className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all ${
                     isLessonCompleted(currentSectionIndex, currentLessonIndex)
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-purple-100 text-purple-700'
-                  }`}
+                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                      : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                  } ${updatingProgress ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  {isLessonCompleted(currentSectionIndex, currentLessonIndex) ? (
+                  {updatingProgress ? (
+                    <>Updating...</>
+                  ) : isLessonCompleted(currentSectionIndex, currentLessonIndex) ? (
                     <> <FaCheckCircle /> Completed </>
                   ) : (
                     'Mark Complete'

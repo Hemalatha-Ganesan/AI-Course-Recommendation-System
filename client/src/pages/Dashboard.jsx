@@ -27,12 +27,70 @@ const Dashboard = () => {
     const completed = courses.filter((c) => c?.completed === true).length;
     const inProgress = courses.filter((c) => !c?.completed && (c?.progress ?? 0) > 0).length;
 
+    // Calculate study hours based on progress (estimated 1 hour per 10% progress)
+    const totalProgress = courses.reduce((acc, c) => acc + (c?.progress ?? 0), 0);
+    const studyHours = Math.floor(totalProgress / 10);
+
+    // Calculate learning streak based on last activity
+    let learningStreak = 0;
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    // Check if user has any courses with recent activity
+    const coursesWithActivity = courses.filter((c) => c?.lastAccessedAt);
+    
+    if (coursesWithActivity.length > 0) {
+      // Find the most recent activity date
+      const activityDates = coursesWithActivity
+        .map((c) => new Date(c.lastAccessedAt).getTime())
+        .sort((a, b) => b - a);
+      
+      if (activityDates.length > 0) {
+        const mostRecentActivity = new Date(activityDates[0]);
+        const daysSinceLastActivity = Math.floor((today - new Date(mostRecentActivity.setHours(0,0,0,0))) / (1000 * 60 * 60 * 24));
+        
+        if (daysSinceLastActivity <= 7) {
+          // User is active within the last week - count consecutive days
+          const uniqueDates = [...new Set(coursesWithActivity.map((c) => 
+            new Date(c.lastAccessedAt).toISOString().split('T')[0]
+          ))].sort().reverse();
+          
+          if (uniqueDates.length > 0) {
+            learningStreak = 1;
+            const todayStr = today.toISOString().split('T')[0];
+            
+            // Check if there's activity today or yesterday
+            if (uniqueDates[0] !== todayStr) {
+              const yesterday = new Date(today);
+              yesterday.setDate(yesterday.getDate() - 1);
+              if (uniqueDates[0] !== yesterday.toISOString().split('T')[0]) {
+                learningStreak = 0;
+              }
+            }
+            
+            // Count consecutive days
+            for (let i = 1; i < uniqueDates.length; i++) {
+              const current = new Date(uniqueDates[i-1]);
+              const prev = new Date(uniqueDates[i]);
+              const diffDays = Math.floor((current - prev) / (1000 * 60 * 60 * 24));
+              
+              if (diffDays === 1) {
+                learningStreak++;
+              } else {
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+
     return {
       totalCourses: total,
       completed,
       inProgress,
-      learningStreak: Math.floor(Math.random() * 30),
-      studyHours: Math.floor(Math.random() * 100),
+      learningStreak,
+      studyHours,
     };
   };
 
@@ -520,12 +578,17 @@ const Dashboard = () => {
                 <h3 className="font-bold text-slate-900">Achievements</h3>
                 <span className="text-3xl">🏆</span>
               </div>
-              <p className="text-4xl font-bold text-yellow-600 mb-2">3</p>
+              <p className="text-4xl font-bold text-yellow-600 mb-2">
+                {stats.completed + (stats.learningStreak > 0 ? 1 : 0) + (stats.studyHours > 10 ? 1 : 0)}
+              </p>
               <p className="text-xs text-slate-600">Badges earned</p>
               <div className="flex gap-2 mt-4">
-                <span className="text-2xl">⭐</span>
-                <span className="text-2xl">🥇</span>
-                <span className="text-2xl">🎖️</span>
+                {stats.completed > 0 && <span className="text-2xl" title="Course Completed">⭐</span>}
+                {stats.learningStreak > 0 && <span className="text-2xl" title="Learning Streak">🔥</span>}
+                {stats.studyHours > 10 && <span className="text-2xl" title="Dedicated Learner">🥇</span>}
+                {stats.completed === 0 && stats.learningStreak === 0 && stats.studyHours === 0 && (
+                  <span className="text-xs text-slate-500">Start learning to earn badges!</span>
+                )}
               </div>
             </div>
 
