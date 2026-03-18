@@ -15,9 +15,9 @@ const Courses = () => {
   const [searchFallback, setSearchFallback] = useState(false); // true when no direct match and trending shown
 
   useEffect(() => {
-    const fetchCourses = async () => {
+  const fetchCourses = async (params = {}) => {
       try {
-        const response = await courseAPI.getAllCourses();
+        const response = await courseAPI.getAllCourses(params);
         const courseList = response.data.data || response.data.courses || [];
         setCourses(courseList);
         setFilteredCourses(courseList);
@@ -28,7 +28,7 @@ const Courses = () => {
       }
     };
 
-    fetchCourses();
+    fetchCourses({ params: { limit: 100, page: 1 } });
   }, []);
 
   useEffect(() => {
@@ -155,9 +155,11 @@ const Courses = () => {
               </p>
             </div>
           )}
-          <div className="courses-grid">
-            {filteredCourses.map((course) => (
-              <CourseCard key={course._id} course={course} />
+          <div className="courses-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {filteredCourses.map((course, index) => (
+              <div key={course._id} className={`animate-in slide-in-from-bottom-${Math.min(index % 6 + 1, 6)} duration-700 fade-in stagger-100`}>
+                <CourseCard course={course} />
+              </div>
             ))}
           </div>
         </div>

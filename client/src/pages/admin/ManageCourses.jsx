@@ -108,7 +108,7 @@ const ManageCourses = () => {
     setShowModal(true);
   };
 
-  const categories = ['Programming', 'Web Development', 'Mobile Development', 'Data Science', 'Machine Learning', 'DevOps', 'Design', 'Business', 'Marketing', 'Other'];
+  const categories = ['Development', 'Business', 'Design', 'Marketing', 'IT & Software', 'Personal Development', 'Other'];
 
   if (loading) return <Loader />;
 

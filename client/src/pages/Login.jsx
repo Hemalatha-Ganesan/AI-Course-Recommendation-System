@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
+import Loader from '../components/Loader';
 
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useUser();
 
   const [formData, setFormData] = useState({ email: '', password: '' });
-  const [error, setError]       = useState('');
-  const [loading, setLoading]   = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [remember, setRemember] = useState(false);
+  const [focusedField, setFocusedField] = useState('');
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -21,11 +23,15 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    const result = await login(formData.email, formData.password);
-    if (result.success) {
-      navigate(result.user.role === 'admin' ? '/admin' : '/dashboard');
-    } else {
-      setError(result.error || 'Login failed. Please check your credentials.');
+    try {
+      const result = await login(formData.email, formData.password);
+      if (result.success) {
+        navigate(result.user.role === 'admin' ? '/admin' : '/dashboard');
+      } else {
+        setError(result.error || 'Invalid credentials');
+      }
+    } catch (err) {
+      setError('Login failed. Please try again.');
     }
     setLoading(false);
   };
@@ -35,385 +41,187 @@ const Login = () => {
     setError('');
   };
 
+  const testAccounts = [
+    { role: 'admin', email: 'hemalatha080705@gmail.com', password: 'HemaG', label: 'Admin' },
+    { role: 'user', email: 'user@test.com', password: 'user123', label: 'Student' }
+  ];
+
   return (
-    <>
-      {/* ── Embedded CSS guarantees layout even if Tailwind isn't loaded ── */}
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
       <style>{`
-        @keyframes loginSpin { to { transform: rotate(360deg); } }
-
-        .login-page {
-          min-height: 100vh;
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        
+        @keyframes float1 {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(1deg); }
         }
-        @media (max-width: 1024px) {
-          .login-page { grid-template-columns: 1fr; }
-          .login-left { display: none !important; }
+        @keyframes float2 {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-10px) rotate(-1deg); }
         }
-
-        .login-left {
-          background: linear-gradient(145deg, #5b21b6 0%, #6d28d9 50%, #7c3aed 100%);
-          padding: 3rem;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-          color: white;
+        .float1 { animation: float1 6s ease-in-out infinite; }
+        .float2 { animation: float2 7s ease-in-out infinite; }
+        
+        .glass-card {
+          background: rgba(255, 255, 255, 0.25);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .input-float {
           position: relative;
-          overflow: hidden;
         }
-        .login-blob1 {
-          position: absolute; top: -100px; right: -100px;
-          width: 350px; height: 350px; border-radius: 50%;
-          background: rgba(255,255,255,0.06); filter: blur(60px);
+        .input-float label {
+          position: absolute;
+          left: 1rem; top: 1rem; pointer-events: none;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          color: #9ca3af; font-weight: 500; font-size: 0.875rem;
         }
-        .login-blob2 {
-          position: absolute; bottom: -100px; left: -80px;
-          width: 300px; height: 300px; border-radius: 50%;
-          background: rgba(167,139,250,0.15); filter: blur(50px);
+        .input-float input:focus + label,
+        .input-float input:not(:placeholder-shown) + label {
+          top: -0.5rem; left: 0.75rem; font-size: 0.75rem;
+          color: #8b5cf6; background: white; padding: 0 0.25rem;
         }
-        .login-logo { position: relative; z-index: 1; }
-        .login-logo h1 {
-          font-size: 2.25rem; font-weight: 800;
-          letter-spacing: -1px; margin-bottom: 0.75rem;
+        .input-float input {
+          padding: 1.25rem 1rem 1rem; width: 100%; border: none;
+          background: rgba(255,255,255,0.6); border-radius: 1rem;
+          font-size: 1rem; backdrop-filter: blur(10px);
+          transition: all 0.2s; outline: none;
         }
-        .login-logo-bar {
-          width: 48px; height: 4px;
-          background: rgba(255,255,255,0.45);
-          border-radius: 2px; margin-bottom: 1.25rem;
+        .input-float input:focus {
+          background: white; box-shadow: 0 10px 30px rgba(139,92,246,0.2);
+          transform: translateY(-2px);
         }
-        .login-logo p {
-          font-size: 1.1rem; line-height: 1.75;
-          color: rgba(255,255,255,0.85); max-width: 360px;
-        }
-        .login-stats {
-          position: relative; z-index: 1;
-          display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
-        }
-        .login-image {
-          max-width: 100%;
-          margin-bottom: 2rem;
-          border-radius: 1rem;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        }
-        @media (max-width: 1024px) {
-          .login-image { display: none; }
-        }
-        .login-stat {
-          background: rgba(255,255,255,0.1);
-          border: 1px solid rgba(255,255,255,0.15);
-          border-radius: 1rem; padding: 1rem;
-        }
-        .login-stat strong {
-          display: block; font-size: 1.5rem;
-          font-weight: 900; margin-bottom: 0.25rem;
-        }
-        .login-stat span { font-size: 0.875rem; color: rgba(255,255,255,0.7); }
-        .login-testimonial {
-          position: relative; z-index: 1;
-          background: rgba(255,255,255,0.1);
-          border: 1px solid rgba(255,255,255,0.15);
-          border-radius: 1rem; padding: 1.25rem;
-        }
-        .login-testimonial p {
-          font-size: 0.875rem; color: rgba(255,255,255,0.9);
-          line-height: 1.7; margin-bottom: 1rem;
-        }
-        .login-testimonial-author {
-          display: flex; align-items: center; gap: 0.75rem;
-        }
-        .login-avatar {
-          width: 2.25rem; height: 2.25rem; border-radius: 50%;
-          background: linear-gradient(135deg, #a78bfa, #60a5fa);
-          display: flex; align-items: center; justify-content: center;
-          font-weight: 700; font-size: 0.875rem; flex-shrink: 0;
-        }
-        .login-right {
-          background: #f5f3ff;
-          display: flex; align-items: center;
-          justify-content: center; padding: 2rem;
-          min-height: 100vh;
-        }
-        .login-card-wrap { width: 100%; max-width: 440px; }
-        .login-mobile-logo {
-          display: none; text-align: center; margin-bottom: 2rem;
-        }
-        @media (max-width: 1024px) {
-          .login-mobile-logo { display: block; }
-          .login-right { min-height: 100vh; }
-        }
-        .login-mobile-logo h1 {
-          font-size: 1.875rem; font-weight: 900;
-          background: linear-gradient(to right, #7c3aed, #7c3aed);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          margin-bottom: 0.25rem;
-        }
-        .login-mobile-logo p { font-size: 0.875rem; color: #64748b; }
-        .login-card {
-          background: white; border-radius: 1.5rem; padding: 2.5rem;
-          box-shadow: 0 4px 6px -1px rgba(0,0,0,0.07), 0 25px 60px -12px rgba(124,58,237,0.16);
-          border: 1px solid rgba(0,0,0,0.05);
-        }
-        .login-card h2 {
-          font-size: 1.75rem; font-weight: 700;
-          color: #0f172a; margin-bottom: 0.4rem;
-        }
-        .login-card > p {
-          color: #64748b; font-size: 0.95rem; margin-bottom: 1.75rem;
-        }
-        .login-error {
-          display: flex; align-items: center; gap: 0.5rem;
-          background: #fef2f2; border: 1px solid #fecaca;
-          border-left: 4px solid #ef4444; border-radius: 0.75rem;
-          padding: 0.875rem 1rem; margin-bottom: 1.25rem;
-          color: #dc2626; font-size: 0.875rem; font-weight: 500;
-        }
-        .login-form { display: flex; flex-direction: column; gap: 1.25rem; }
-        .login-label {
-          display: block; font-size: 0.875rem;
-          font-weight: 600; color: #374151; margin-bottom: 0.5rem;
-        }
-        .login-label-row {
-          display: flex; justify-content: space-between;
-          align-items: center; margin-bottom: 0.5rem;
-        }
-        .login-input {
-          width: 100%; padding: 0.875rem 1rem;
-          border: 2px solid #e2e8f0; border-radius: 0.75rem;
-          font-size: 0.95rem; outline: none;
-          background: #faf5ff; color: #3b0764;
-          transition: all 0.2s; box-sizing: border-box;
-          font-family: inherit;
-        }
-        .login-input:focus {
-          border-color: #7c3aed; background: #fff;
-          box-shadow: 0 0 0 4px rgba(124,58,237,0.14);
-        }
-        .login-input-wrap { position: relative; }
-        .login-eye {
-          position: absolute; right: 0.875rem; top: 50%;
-          transform: translateY(-50%);
-          background: none; border: none; cursor: pointer;
-          color: #94a3b8; padding: 0.25rem; line-height: 0;
-        }
-        .login-eye:hover { color: #64748b; }
-        .login-forgot {
-          font-size: 0.8rem; font-weight: 600; color: #7c3aed;
-          background: none; border: none; cursor: pointer;
-          font-family: inherit;
-        }
-        .login-forgot:hover { color: #5b21b6; }
-        .login-check { display: flex; align-items: center; gap: 0.625rem; }
-        .login-check input { width: 16px; height: 16px; accent-color: #7c3aed; cursor: pointer; }
-        .login-check label { font-size: 0.875rem; color: #475569; cursor: pointer; }
-        .login-submit {
-          width: 100%; padding: 0.95rem; color: white;
-          background: linear-gradient(135deg, #7c3aed 0%, #7c3aed 100%);
-          border: none; border-radius: 0.75rem;
-          font-size: 1rem; font-weight: 700; cursor: pointer;
-          transition: all 0.2s; box-shadow: 0 4px 15px rgba(124,58,237,0.35);
-          font-family: inherit;
-        }
-        .login-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(124,58,237,0.45); }
-        .login-submit:disabled { background: #c7d2fe; box-shadow: none; cursor: not-allowed; }
-        .login-spinner {
-          display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-        }
-        .login-spin { animation: loginSpin 1s linear infinite; }
-        .login-signup-link {
-          text-align: center; margin-top: 1.5rem;
-          font-size: 0.9rem; color: #64748b;
-        }
-        .login-signup-link a {
-          color: #7c3aed; font-weight: 700; text-decoration: none;
-        }
-        .login-signup-link a:hover { color: #5b21b6; }
-        .login-divider {
-          display: flex; align-items: center;
-          gap: 0.75rem; margin: 1.25rem 0;
-        }
-        .login-divider-line { flex: 1; height: 1px; background: #e2e8f0; }
-        .login-divider span {
-          font-size: 11px; font-weight: 600; color: #94a3b8;
-          text-transform: uppercase; letter-spacing: 0.08em;
-        }
-        .login-creds { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-        .login-cred-btn {
-          text-align: left; padding: 0.75rem; border-radius: 0.75rem;
-          cursor: pointer; transition: all 0.2s; border: 2px solid;
-          font-family: inherit; background: none;
-        }
-        .login-cred-admin { background: #eef2ff; border-color: #c7d2fe; }
-        .login-cred-admin:hover { background: #e0e7ff; border-color: #8b5cf6; }
-        .login-cred-user  { background: #ecfeff; border-color: #a5f3fc; }
-        .login-cred-user:hover  { background: #cffafe; border-color: #22d3ee; }
-        .login-cred-role {
-          font-size: 11px; font-weight: 700;
-          text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;
-        }
-        .login-cred-admin .login-cred-role { color: #7c3aed; }
-        .login-cred-user  .login-cred-role { color: #0891b2; }
-        .login-cred-email { font-size: 12px; color: #475569; }
-        .login-cred-pass  { font-size: 12px; color: #94a3b8; }
       `}</style>
 
-      <div className="login-page">
+      <div className="max-w-md w-full space-y-8 relative">
+        {/* Decorative elements */}
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-r from-purple-300 to-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 float1" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-r from-pink-300 to-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 float2" />
 
-        {/* ══ LEFT PANEL ══ */}
-        <div className="login-left">
-          {/* optional illustration on the left, change path to match your asset */}
-          <img src="/assets/login-illustration.png" alt="Welcome back" className="login-image" />
-          <div className="login-blob1" />
-          <div className="login-blob2" />
-
-          <div className="login-logo">
-            <h1>CourseAI</h1>
-            <div className="login-logo-bar" />
-            <p>Welcome back! Continue your AI-powered learning journey where you left off.</p>
-          </div>
-
-          <div className="login-stats">
-            {[
-              { number: '50K+', label: 'Active Learners' },
-              { number: '234',  label: 'Courses Available' },
-              { number: '4.9★', label: 'Average Rating' },
-              { number: '95%',  label: 'Completion Rate' },
-            ].map((s, i) => (
-              <div key={i} className="login-stat">
-                <strong>{s.number}</strong>
-                <span>{s.label}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="login-testimonial">
-            <p>"CourseAI completely transformed how I learn. The AI recommendations are spot-on and save me hours!"</p>
-            <div className="login-testimonial-author">
-              <div className="login-avatar">S</div>
-              <div>
-                <strong style={{ display:'block', fontSize:'0.875rem' }}>Sarah M.</strong>
-                <span style={{ fontSize:'0.75rem', color:'rgba(255,255,255,0.6)' }}>Software Engineer</span>
-              </div>
+        {/* Main card */}
+        <div className="glass-card p-10 rounded-3xl shadow-2xl">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl mb-6 shadow-lg">
+              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
             </div>
+            <h1 className="text-4xl font-black bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+              CourseAI
+            </h1>
+            <p className="text-xl font-medium text-gray-600">AI-Powered Learning Platform</p>
           </div>
-        </div>
 
-        {/* ══ RIGHT PANEL ══ */}
-        <div className="login-right">
-          <div className="login-card-wrap">
+          {error && (
+            <div className="bg-gradient-to-r from-red-400 to-red-500 text-white p-4 rounded-2xl mb-8 shadow-lg flex items-center gap-3 animate-pulse">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              {error}
+            </div>
+          )}
 
-            <div className="login-mobile-logo">
-              <h1>CourseAI</h1>
-              <p>AI-powered learning platform</p>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email Field */}
+            <div className="input-float">
+              <input
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                onFocus={() => setFocusedField('email')}
+                onBlur={() => setFocusedField('')}
+                placeholder=" "
+                required
+                className="input-float-input"
+              />
+              <label>Email Address</label>
             </div>
 
-            <div className="login-card">
-              <h2>Welcome Back 👋</h2>
-              <p>Sign in to continue your learning journey</p>
+            {/* Password Field */}
+            <div className="input-float">
+              <input
+                name="password"
+                type="password"
+                value={formData.password}
+                onChange={handleChange}
+                onFocus={() => setFocusedField('password')}
+                onBlur={() => setFocusedField('')}
+                placeholder=" "
+                required
+              />
+              <label>Password</label>
+              <button
+                type="button"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                onClick={() => setShowPass(!showPass)}
+              >
+                {showPass ? '🙈' : '👁'}
+              </button>
+            </div>
 
-              {error && (
-                <div className="login-error">
-                  <span>⚠️</span> {error}
-                </div>
+            <div className="flex items-center justify-between">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  className="rounded border-gray-300 text-purple-600 shadow-sm focus:ring-purple-500"
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
+                />
+                <span className="ml-2 text-sm text-gray-600">Remember me</span>
+              </label>
+
+              <Link to="/forgot-password" className="text-sm font-medium text-purple-600 hover:text-purple-500 transition-colors">
+                Forgot password?
+              </Link>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              {loading ? (
+                <>
+                  <Loader />
+                  Signing in...
+                </>
+              ) : (
+                'Sign In'
               )}
+            </button>
+          </form>
 
-              <form className="login-form" onSubmit={handleSubmit}>
+          <div className="text-center mt-8">
+            <p className="text-sm text-gray-600 mb-4">
+              Don't have an account?{' '}
+              <Link to="/signup" className="font-semibold text-purple-600 hover:text-purple-700">
+                Sign up
+              </Link>
+            </p>
 
-                {/* Email */}
-                <div>
-                  <label className="login-label">Email Address</label>
-                  <input
-                    type="email" name="email"
-                    value={formData.email} onChange={handleChange}
-                    placeholder="you@example.com" required
-                    className="login-input"
-                  />
-                </div>
-
-                {/* Password */}
-                <div>
-                  <div className="login-label-row">
-                    <label className="login-label" style={{ margin:0 }}>Password</label>
-                    <button type="button" className="login-forgot"
-                      onClick={() => alert('Password reset coming soon!')}>
-                      Forgot password?
-                    </button>
-                  </div>
-                  <div className="login-input-wrap">
-                    <input
-                      type={showPass ? 'text' : 'password'} name="password"
-                      value={formData.password} onChange={handleChange}
-                      placeholder="Enter your password" required
-                      className="login-input" style={{ paddingRight: '3rem' }}
-                    />
-                    <button type="button" className="login-eye" onClick={() => setShowPass(!showPass)}>
-                      {showPass ? (
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                        </svg>
-                      ) : (
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Remember */}
-                <div className="login-check">
-                  <input type="checkbox" id="remember"
-                    checked={remember} onChange={() => setRemember(!remember)} />
-                  <label htmlFor="remember">Remember me for 30 days</label>
-                </div>
-
-                {/* Submit */}
-                <button type="submit" disabled={loading} className="login-submit">
-                  {loading ? (
-                    <span className="login-spinner">
-                      <svg className="login-spin" width="18" height="18" fill="none" viewBox="0 0 24 24">
-                        <circle style={{opacity:0.25}} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                        <path style={{opacity:0.75}} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                      </svg>
-                      Signing in...
-                    </span>
-                  ) : 'Sign In →'}
-                </button>
-              </form>
-
-              <p className="login-signup-link">
-                Don't have an account?{' '}
-                <Link to="/signup">Sign up free</Link>
-              </p>
-
-              <div className="login-divider">
-                <div className="login-divider-line" />
-                <span>Test Credentials</span>
-                <div className="login-divider-line" />
-              </div>
-
-              <div className="login-creds">
-                <button type="button" className="login-cred-btn login-cred-admin"
-                onClick={() => fillCredentials('hemalatha080705@gmail.com', 'HemaG')}>
-
-                  <div className="login-cred-role">hemalatha ↗</div>
-                  <div className="login-cred-email">hemalatha080705@gmail.com</div>
-                  <div className="login-cred-pass">HemaG</div>
-                </button>
-                <button type="button" className="login-cred-btn login-cred-user"
-                  onClick={() => fillCredentials('user@test.com', 'user123')}>
-                  <div className="login-cred-role">User ↗</div>
-                  <div className="login-cred-email">user@test.com</div>
-                  <div className="login-cred-pass">user123</div>
-                </button>
+            <div className="border-t border-gray-200 pt-6">
+              <p className="text-xs text-gray-500 mb-4">🔧 Quick Test Login</p>
+              <div className="grid grid-cols-2 gap-3">
+                {testAccounts.map((acc, i) => (
+                  <button
+                    key={i}
+                    className="p-3 border-2 border-gray-200 hover:border-purple-300 hover:bg-purple-50 rounded-xl transition-all text-left text-sm font-medium hover:shadow-md"
+                    onClick={() => fillCredentials(acc.email, acc.password)}
+                  >
+                    <div className="font-bold text-purple-700">{acc.label}</div>
+                    <div className="text-xs text-gray-600 truncate">{acc.email}</div>
+                  </button>
+                ))}
               </div>
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

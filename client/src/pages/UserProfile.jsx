@@ -32,10 +32,12 @@ const UserProfile = () => {
   }, [user]);
 
   const [myLearningCourses, setMyLearningCourses] = useState([]);
+  const [learningStats, setLearningStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [myLearningLoading, setMyLearningLoading] = useState(true);
   const [myLearningError, setMyLearningError] = useState('');
 
-  // Fetch real enrolled courses with progress
+  // Fetch real enrolled courses
   useEffect(() => {
     const fetchLearningCourses = async () => {
       try {
@@ -52,6 +54,28 @@ const UserProfile = () => {
 
     fetchLearningCourses();
   }, []);
+
+  // Fetch real stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setStatsLoading(true);
+        const response = await fetch(`/api/users/${user?._id}/stats`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        const data = await response.json();
+        setLearningStats(data.stats);
+      } catch (error) {
+        console.error('Stats error:', error);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    if (user?._id) fetchStats();
+  }, [user]);
 
   if (!user) {
     return (
@@ -217,22 +241,22 @@ const UserProfile = () => {
 
                 {/* Progress Overview Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-2xl p-6 border border-violet-100 shadow-sm hover:shadow-md transition">
+                  <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-100 shadow-sm hover:shadow-md transition animate-pulse">
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-bold text-violet-700 uppercase tracking-wider">Total Courses</p>
+                      <p className="text-sm font-bold text-emerald-700 uppercase tracking-wider">Available Courses</p>
                       <span className="text-3xl">📚</span>
                     </div>
-                    <h3 className="text-4xl font-black text-violet-900">5</h3>
-                    <p className="text-xs text-violet-600 mt-2">Enrolled in 5 courses</p>
+                    <h3 className="text-4xl font-black text-emerald-900">75</h3>
+                    <p className="text-xs text-emerald-600 mt-2">Total courses in platform</p>
                   </div>
 
                   <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-100 shadow-sm hover:shadow-md transition">
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-bold text-emerald-700 uppercase tracking-wider">Completed</p>
-                      <span className="text-3xl">✅</span>
+                      <p className="text-sm font-bold text-emerald-700 uppercase tracking-wider">Your Enrolled</p>
+                      <span className="text-3xl">🎓</span>
                     </div>
-                    <h3 className="text-4xl font-black text-emerald-900">2</h3>
-                    <p className="text-xs text-emerald-600 mt-2">Courses successfully finished</p>
+                    <h3 className="text-4xl font-black text-emerald-900">{myLearningCourses.length}</h3>
+                    <p className="text-xs text-emerald-600 mt-2">Active learning courses</p>
                   </div>
 
                   <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border border-blue-100 shadow-sm hover:shadow-md transition">
@@ -598,29 +622,37 @@ const UserProfile = () => {
 
                 {/* ✅ Fix: static color classes instead of dynamic template strings */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                  {[
-                    { label: 'Courses Completed', value: '5', icon: '✅', color: 'emerald' },
-                    { label: 'Total Study Time', value: '48 hrs', icon: '⏱️', color: 'blue' },
-                    { label: 'Current Streak', value: '12 days', icon: '🔥', color: 'orange' },
-                    { label: 'Achievements', value: '8', icon: '🏆', color: 'yellow' },
-                  ].map((stat, idx) => (
-                    <div
-                      key={idx}
-                      className={`p-6 rounded-xl border-2 ${statColorMap[stat.color].wrapper}`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className={`text-sm font-semibold mb-2 ${statColorMap[stat.color].label}`}>
-                            {stat.label}
-                          </p>
-                          <p className={`text-3xl font-bold ${statColorMap[stat.color].value}`}>
-                            {stat.value}
-                          </p>
+                  {statsLoading ? (
+                    <div className="col-span-full text-center py-12 text-gray-500">Loading stats...</div>
+                  ) : learningStats ? (
+                    [
+                      { label: 'Courses Completed', value: learningStats.coursesCompleted, icon: '✅', color: 'emerald' },
+                      { label: 'Study Hours', value: `${learningStats.totalStudyHours}h`, icon: '⏱️', color: 'blue' },
+                      { label: 'Current Streak', value: `${learningStats.currentStreak} days`, icon: '🔥', color: 'orange' },
+                      { label: 'Achievements', value: learningStats.achievements, icon: '🏆', color: 'yellow' },
+                    ].map((stat, idx) => (
+                      <div
+                        key={idx}
+                        className={`p-6 rounded-xl border-2 ${statColorMap[stat.color].wrapper}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className={`text-sm font-semibold mb-2 ${statColorMap[stat.color].label}`}>
+                              {stat.label}
+                            </p>
+                            <p className={`text-3xl font-bold ${statColorMap[stat.color].value}`}>
+                              {stat.value}
+                            </p>
+                          </div>
+                          <span className="text-4xl">{stat.icon}</span>
                         </div>
-                        <span className="text-4xl">{stat.icon}</span>
                       </div>
+                    ))
+                  ) : (
+                    <div className="col-span-full text-center py-12 text-gray-500">
+                      No stats available yet - complete some courses!
                     </div>
-                  ))}
+                  )}
                 </div>
 
                 {/* Learning Breakdown */}

@@ -148,6 +148,10 @@ const CourseContent = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const isYouTubeVideo = (url) => {
+    return url && (url.includes('youtube.com/embed') || url.includes('youtu.be'));
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -197,29 +201,41 @@ const CourseContent = () => {
           <div className="lg:col-span-2">
             {/* Video Player */}
             <div className="bg-black rounded-lg overflow-hidden aspect-video relative">
-              {currentLesson?.videoUrl ? (
-                <>
-                  <video
+{currentLesson?.videoUrl ? (
+                isYouTubeVideo(currentLesson.videoUrl) ? (
+                  <iframe
                     key={`${currentSectionIndex}-${currentLessonIndex}`}
-                    src={currentLesson.videoUrl}
+                    src={`${currentLesson.videoUrl}?autoplay=0&controls=1&rel=0&modestbranding=1`}
+                    title={currentLesson.title}
                     className="w-full h-full"
-                    controls
-                    onTimeUpdate={handleVideoProgress}
-                    onEnded={handleVideoEnded}
-                    onPlay={() => setIsPlaying(true)}
-                    onPause={() => setIsPlaying(false)}
-                  >
-                    Your browser does not support video playback.
-                  </video>
-                  
-                  {/* Progress overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
-                    <div 
-                      className="h-full bg-purple-500"
-                      style={{ width: `${videoProgress}%` }}
-                    ></div>
-                  </div>
-                </>
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                ) : (
+                  <>
+                    <video
+                      key={`${currentSectionIndex}-${currentLessonIndex}`}
+                      src={currentLesson.videoUrl}
+                      className="w-full h-full"
+                      controls
+                      onTimeUpdate={handleVideoProgress}
+                      onEnded={handleVideoEnded}
+                      onPlay={() => setIsPlaying(true)}
+                      onPause={() => setIsPlaying(false)}
+                    >
+                      Your browser does not support video playback.
+                    </video>
+                    
+                    {/* Progress overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
+                      <div 
+                        className="h-full bg-purple-500"
+                        style={{ width: `${videoProgress}%` }}
+                      ></div>
+                    </div>
+                  </>
+                )
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gray-800 text-white">
                   <div className="text-center">

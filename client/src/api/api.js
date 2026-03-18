@@ -127,6 +127,7 @@ export const adminAPI = {
   
   // Recent History
   getRecentHistory: (limit = 20) => API.get(`/admin/history?limit=${limit}`),
+  getLeaderboard: (limit = 10, metric = 'hours') => API.get('/admin/leaderboard', { params: { limit, metric } }),
 };
 
 export default API;
