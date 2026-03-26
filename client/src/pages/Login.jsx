@@ -12,7 +12,6 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [remember, setRemember] = useState(false);
-  const [focusedField, setFocusedField] = useState('');
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -132,8 +131,6 @@ const Login = () => {
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                onFocus={() => setFocusedField('email')}
-                onBlur={() => setFocusedField('')}
                 placeholder=" "
                 required
                 className="input-float-input"
@@ -148,8 +145,6 @@ const Login = () => {
                 type="password"
                 value={formData.password}
                 onChange={handleChange}
-                onFocus={() => setFocusedField('password')}
-                onBlur={() => setFocusedField('')}
                 placeholder=" "
                 required
               />

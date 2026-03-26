@@ -5,7 +5,7 @@ import { courseAPI } from '../api/api';
 import Loader from '../components/Loader';
 
 const UserProfile = () => {
-  const { user, loading, logout } = useContext(UserContext);
+  const { user, logout } = useContext(UserContext);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [editMode, setEditMode] = useState(false);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { adminAPI } from '../../api/api';
 import Loader from '../../components/Loader';
-import { FaTrash, FaUserGraduate, FaClock, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaTrash, FaUserGraduate, FaCheck, FaTimes } from 'react-icons/fa';
 
 const ManageUsers = () => {
   const [users, setUsers] = useState([]);

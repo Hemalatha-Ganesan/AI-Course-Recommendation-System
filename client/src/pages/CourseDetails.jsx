@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { courseAPI } from '../api/api';
 import { UserContext } from '../contexts/UserContext';
 import useUserActivity from '../hooks/useUserActivity';
 import Loader from '../components/Loader';
-import { FaStar, FaClock, FaUsers, FaBook, FaPlay, FaGraduationCap } from 'react-icons/fa';
+import { FaStar, FaClock, FaUsers, FaBook, FaPlay } from 'react-icons/fa';
 
 const CourseDetails = () => {
   const { id } = useParams();
@@ -146,11 +146,35 @@ const CourseDetails = () => {
         
         <h2 style={{ marginTop: '2rem' }}>What you'll learn</h2>
         <ul style={{ lineHeight: '2', marginLeft: '2rem', color: '#4b5563' }}>
-          <li>Master the fundamentals of {course.category}</li>
-          <li>Build real-world projects</li>
-          <li>Get hands-on experience</li>
-          <li>Earn a certificate upon completion</li>
+          {course.whatYouLearn?.map((learn, i) => <li key={i}>{learn}</li>) || 
+           [<li>Master the fundamentals of {course.category}</li>,
+            <li>Build real-world projects</li>,
+            <li>Get hands-on experience</li>,
+            <li>Earn a certificate upon completion</li>]}
         </ul>
+
+        {course.requirements?.length > 0 && (
+          <>
+            <h2 style={{ marginTop: '2rem' }}>Requirements</h2>
+            <ul style={{ lineHeight: '2', marginLeft: '2rem', color: '#4b5563' }}>
+              {course.requirements.map((req, i) => <li key={i}>{req}</li>)}
+            </ul>
+          </>
+        )}
+
+        {course.roadmap?.length > 0 && (
+          <>
+            <h2 style={{ marginTop: '2rem' }}>Course Roadmap</h2>
+            <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
+              {course.roadmap.map((section, i) => (
+                <div key={i} style={{ padding: '1rem', border: '1px solid #e5e7eb', borderRadius: '0.5rem', background: '#f9fafb' }}>
+                  <h3 style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>{section.title}</h3>
+                  <p>{section.lessons} lessons • {section.duration} hours</p>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
 
         <h2 style={{ marginTop: '2rem' }}>Instructor</h2>
         <p><strong>{course.instructor || 'Expert Instructor'}</strong></p>

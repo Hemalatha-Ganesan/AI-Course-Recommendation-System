@@ -6,7 +6,7 @@ import { UserProvider } from './contexts/UserContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import AdminRoute from './components/AdminRoute';
-import AdminLayout from './components/AdminLayout';
+
 
 // User Pages
 import Login from './pages/Login';

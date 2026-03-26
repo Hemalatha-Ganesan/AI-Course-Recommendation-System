@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { contentAPI, courseAPI } from '../api/api';
-import { FaPlay, FaCheckCircle, FaLock, FaClock, FaBook, FaLink, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import { FaPlay, FaCheckCircle, FaClock, FaBook, FaLink, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 
 const CourseContent = () => {
   const { courseId } = useParams();
@@ -15,12 +15,11 @@ const CourseContent = () => {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
   const [videoProgress, setVideoProgress] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [updatingProgress, setUpdatingProgress] = useState(false);
 
   useEffect(() => {
     fetchCourseContent();
-  }, [courseId]);
+  }, [courseId, fetchCourseContent]);
 
   const fetchCourseContent = async () => {
     try {
@@ -68,7 +67,6 @@ const CourseContent = () => {
   };
 
   const handleVideoEnded = async () => {
-    setIsPlaying(false);
     // Mark lesson as completed
     await updateProgress(true);
   };
@@ -142,11 +140,7 @@ const CourseContent = () => {
     return lessonProgress?.completed || false;
   };
 
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+
 
   const isYouTubeVideo = (url) => {
     return url && (url.includes('youtube.com/embed') || url.includes('youtu.be'));
@@ -221,11 +215,12 @@ const CourseContent = () => {
                       controls
                       onTimeUpdate={handleVideoProgress}
                       onEnded={handleVideoEnded}
-                      onPlay={() => setIsPlaying(true)}
-                      onPause={() => setIsPlaying(false)}
-                    >
-                      Your browser does not support video playback.
-                    </video>
+                  controls
+                  onTimeUpdate={handleVideoProgress}
+                  onEnded={handleVideoEnded}
+                >
+                  Your browser does not support video playback.
+                </video>
                     
                     {/* Progress overlay */}
                     <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">

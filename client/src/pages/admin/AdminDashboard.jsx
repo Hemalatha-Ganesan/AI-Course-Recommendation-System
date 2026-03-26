@@ -3,10 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../contexts/UserContext';
 import { adminAPI } from '../../api/api';
 
-const ICONS = {
-  students: '👥', courses: '📚', revenue: '💰', enrollments: '📝',
-  completion: '✅', dropout: '📉', rating: '⭐', instructors: '👩‍🏫'
-};
+
 
 const StatCard = ({ title, value, subtitle, icon, change, color }) => (
   <div className="group bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-slate-200/50 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 hover:bg-white">
@@ -48,7 +45,6 @@ const MiniBarChart = ({ data, labels, colors }) => (
 );
 
 const AdminDashboard = () => {
-  const navigate = useNavigate();
   const { logout } = useUser();
   const [stats, setStats] = useState({});
   const [history, setHistory] = useState([]);
@@ -59,7 +55,6 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
         const [statsRes, historyRes, coursesRes, leaderboardRes] = await Promise.all([
           adminAPI.getStats(),
           adminAPI.getRecentHistory(20),
@@ -83,7 +78,6 @@ const AdminDashboard = () => {
   const completionRate = stats.completionRate || '0';
   const avgRating = stats.avgRating || '0';
 
-  const chartLabels = ['Data Science', 'DevOps', 'ML', 'Web Dev', 'Python', 'Cloud'];
   const chartData = {
     revenue: stats.topCategories ? stats.topCategories.map(c => c.count) : [0,0,0,0,0,0],
     enrollments: [280, 410, 340, 480, 550, 720] 
@@ -166,7 +160,7 @@ const AdminDashboard = () => {
             color="from-violet-500 to-purple-500"
           />
           
-          <StatCard 
+<StatCard 
             title="Avg Rating" 
             value={avgRating}
             subtitle="⭐ All courses"
@@ -174,6 +168,17 @@ const AdminDashboard = () => {
             change={1}
             color="from-orange-500 to-amber-500"
           />
+          
+          <StatCard 
+            title="Enrolled Students" 
+            value={stats.totalEnrolledStudents || 0}
+            subtitle="Unique learners"
+            icon="👨‍🎓"
+            change={8}
+            color="from-teal-500 to-emerald-500"
+            onClick={() => navigate('/admin/users')}
+            className="cursor-pointer hover:shadow-xl"
+          /> 
 
         </div>
 
