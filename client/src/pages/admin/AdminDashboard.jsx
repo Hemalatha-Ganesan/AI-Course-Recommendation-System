@@ -5,8 +5,11 @@ import { adminAPI } from '../../api/api';
 
 
 
-const StatCard = ({ title, value, subtitle, icon, change, color }) => (
-  <div className="group bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-slate-200/50 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 hover:bg-white">
+const StatCard = ({ title, value, subtitle, icon, change, color, onClick, className = '' }) => (
+  <div 
+    className={`group bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-slate-200/50 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 hover:bg-white ${className} ${onClick ? 'cursor-pointer' : ''}`}
+    onClick={onClick}
+  >
     <div className="flex items-start justify-between mb-4">
       <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg`}>
         <span className="text-xl font-bold text-white">{icon}</span>
@@ -51,6 +54,7 @@ const AdminDashboard = () => {
   const [topCourses, setTopCourses] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {

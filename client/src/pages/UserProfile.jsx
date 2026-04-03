@@ -45,8 +45,8 @@ const UserProfile = () => {
         const response = await courseAPI.getMyLearning();
         setMyLearningCourses(response.data.data || []);
       } catch (error) {
-        setMyLearningError('Failed to load learning courses');
-        console.error('Learning courses error:', error);
+setMyLearningError(error.response?.data?.message || error.message || 'Failed to load learning courses');
+        console.error('Learning courses error:', error.response?.data || error);
       } finally {
         setMyLearningLoading(false);
       }
@@ -287,14 +287,25 @@ const UserProfile = () => {
                       <Loader />
                     </div>
                   ) : myLearningError ? (
-                    <div className="text-center py-12 text-orange-600">
-                      {myLearningError}
-                      <button 
-                        onClick={() => window.location.reload()}
-                        className="ml-2 underline hover:no-underline"
-                      >
-                        Retry
-                      </button>
+                    <div className="text-center py-12 p-8 bg-orange-50 border-2 border-orange-200 rounded-2xl">
+                      <div className="text-orange-800 mb-4">
+                        <p className="font-bold text-lg mb-2">⚠️ {myLearningError}</p>
+                        <p className="text-sm">Make sure you're logged in and have enrollments. Run seed scripts!</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2 justify-center">
+                        <button 
+                          onClick={() => window.location.reload()}
+                          className="px-4 py-2 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition"
+                        >
+                          🔄 Retry Load
+                        </button>
+                        <button 
+                          onClick={() => window.open('/api/courses/user/learning', '_blank')}
+                          className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition"
+                        >
+                          🐛 Test API
+                        </button>
+                      </div>
                     </div>
                   ) : filteredLearningCourses.length === 0 ? (
                     <div className="text-center py-12 text-gray-500">

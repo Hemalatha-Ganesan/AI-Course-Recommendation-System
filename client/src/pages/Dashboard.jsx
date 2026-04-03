@@ -147,7 +147,7 @@ const Dashboard = () => {
         const validCourses = Array.isArray(courses) ? courses : [];
 
         setEnrolledCourses(validCourses);
-        setTotalCoursesCount(totalRes?.data?.count || 0);
+        setTotalCoursesCount(totalRes?.data?.data || totalRes?.data?.count || 0);
 
         setStats(calculateStats(validCourses));
       } catch (err) {
