@@ -53,7 +53,7 @@ const AdminDashboard = () => {
   const [history, setHistory] = useState([]);
   const [topCourses, setTopCourses] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // FIX: Removed unused 'loading' state variable
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -71,8 +71,6 @@ const AdminDashboard = () => {
         setLeaderboard(leaderboardRes.data.data || []);
       } catch (error) {
         console.error('Failed to load dashboard data', error);
-      } finally {
-        setLoading(false);
       }
     };
     fetchData();
@@ -137,7 +135,7 @@ const AdminDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
           
           {/* Stats */}
-<StatCard 
+          <StatCard 
             title="Total Students" 
             value={stats.totalUsers || 0} 
             subtitle={`${stats.activeUsers || 0} active`}
@@ -164,7 +162,7 @@ const AdminDashboard = () => {
             color="from-violet-500 to-purple-500"
           />
           
-<StatCard 
+          <StatCard 
             title="Avg Rating" 
             value={avgRating}
             subtitle="⭐ All courses"
@@ -364,4 +362,3 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
-

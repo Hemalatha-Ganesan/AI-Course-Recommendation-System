@@ -17,39 +17,41 @@ const CourseContent = () => {
   const [videoProgress, setVideoProgress] = useState(0);
   const [updatingProgress, setUpdatingProgress] = useState(false);
 
+  // FIX 1: Moved fetchCourseContent inside useEffect to fix no-use-before-define
+  // and react-hooks/exhaustive-deps warnings
   useEffect(() => {
-    fetchCourseContent();
-  }, [courseId, fetchCourseContent]);
+    const fetchCourseContent = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch course details
+        const courseRes = await courseAPI.getCourseById(courseId);
+        setCourse(courseRes.data.data);
+        
+        // Fetch course content (lessons)
+        const contentRes = await contentAPI.getCourseContent(courseId);
+        setContent(contentRes.data.data.content);
+        setProgress(contentRes.data.data.progress);
+        
+        // Set current lesson from progress
+        if (contentRes.data.data.progress.currentLesson) {
+          const { sectionIndex, lessonIndex } = contentRes.data.data.progress.currentLesson;
+          setCurrentSectionIndex(sectionIndex);
+          setCurrentLessonIndex(lessonIndex);
+        }
+      } catch (error) {
+        console.error('Error fetching course content:', error);
+        // If not enrolled, redirect to course details
+        if (error.response?.status === 403) {
+          navigate(`/courses/${courseId}`);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const fetchCourseContent = async () => {
-    try {
-      setLoading(true);
-      
-      // Fetch course details
-      const courseRes = await courseAPI.getCourseById(courseId);
-      setCourse(courseRes.data.data);
-      
-      // Fetch course content (lessons)
-      const contentRes = await contentAPI.getCourseContent(courseId);
-      setContent(contentRes.data.data.content);
-      setProgress(contentRes.data.data.progress);
-      
-      // Set current lesson from progress
-      if (contentRes.data.data.progress.currentLesson) {
-        const { sectionIndex, lessonIndex } = contentRes.data.data.progress.currentLesson;
-        setCurrentSectionIndex(sectionIndex);
-        setCurrentLessonIndex(lessonIndex);
-      }
-    } catch (error) {
-      console.error('Error fetching course content:', error);
-      // If not enrolled, redirect to course details
-      if (error.response?.status === 403) {
-        navigate(`/courses/${courseId}`);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchCourseContent();
+  }, [courseId, navigate]);
 
   // Fetch current lesson when section/lesson changes
   useEffect(() => {
@@ -74,10 +76,9 @@ const CourseContent = () => {
   const updateProgress = async (completed = false, watchedDurationOverride = null) => {
     setUpdatingProgress(true);
     try {
-      // Use override or calculate from video progress (assume full for manual complete)
       const watchedSeconds = watchedDurationOverride !== null 
         ? watchedDurationOverride 
-        : Math.max((videoProgress / 100) * (currentLesson?.videoDuration * 60 || 0), currentLesson?.videoDuration * 30 || 1800); // Min 30min
+        : Math.max((videoProgress / 100) * (currentLesson?.videoDuration * 60 || 0), currentLesson?.videoDuration * 30 || 1800);
       
       await contentAPI.updateLessonProgress(
         courseId,
@@ -111,10 +112,8 @@ const CourseContent = () => {
     
     const sections = content.sections;
     if (currentLessonIndex < sections[currentSectionIndex].lessons.length - 1) {
-      // Next lesson in same section
       goToLesson(currentSectionIndex, currentLessonIndex + 1);
     } else if (currentSectionIndex < sections.length - 1) {
-      // First lesson of next section
       goToLesson(currentSectionIndex + 1, 0);
     }
   };
@@ -123,10 +122,8 @@ const CourseContent = () => {
     if (!content) return;
     
     if (currentLessonIndex > 0) {
-      // Previous lesson in same section
       goToLesson(currentSectionIndex, currentLessonIndex - 1);
     } else if (currentSectionIndex > 0) {
-      // Last lesson of previous section
       const prevSectionIndex = currentSectionIndex - 1;
       const prevSectionLessons = content.sections[prevSectionIndex].lessons.length;
       goToLesson(prevSectionIndex, prevSectionLessons - 1);
@@ -139,8 +136,6 @@ const CourseContent = () => {
     const lessonProgress = progress.lessonProgress.find(p => p.lessonId === lessonId);
     return lessonProgress?.completed || false;
   };
-
-
 
   const isYouTubeVideo = (url) => {
     return url && (url.includes('youtube.com/embed') || url.includes('youtu.be'));
@@ -195,7 +190,7 @@ const CourseContent = () => {
           <div className="lg:col-span-2">
             {/* Video Player */}
             <div className="bg-black rounded-lg overflow-hidden aspect-video relative">
-{currentLesson?.videoUrl ? (
+              {currentLesson?.videoUrl ? (
                 isYouTubeVideo(currentLesson.videoUrl) ? (
                   <iframe
                     key={`${currentSectionIndex}-${currentLessonIndex}`}
@@ -208,6 +203,7 @@ const CourseContent = () => {
                   ></iframe>
                 ) : (
                   <>
+                    {/* FIX 2: Removed duplicate controls, onTimeUpdate, onEnded props */}
                     <video
                       key={`${currentSectionIndex}-${currentLessonIndex}`}
                       src={currentLesson.videoUrl}
@@ -215,12 +211,9 @@ const CourseContent = () => {
                       controls
                       onTimeUpdate={handleVideoProgress}
                       onEnded={handleVideoEnded}
-                  controls
-                  onTimeUpdate={handleVideoProgress}
-                  onEnded={handleVideoEnded}
-                >
-                  Your browser does not support video playback.
-                </video>
+                    >
+                      Your browser does not support video playback.
+                    </video>
                     
                     {/* Progress overlay */}
                     <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
@@ -417,4 +410,3 @@ const CourseContent = () => {
 };
 
 export default CourseContent;
-
