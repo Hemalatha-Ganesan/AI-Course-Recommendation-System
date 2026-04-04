@@ -10,17 +10,19 @@ const { asyncHandler } = require('../middleware/errorMiddleware');
 exports.getCourseContent = asyncHandler(async (req, res) => {
   const courseId = req.params.courseId;
   
-  // Check if user is enrolled
-  const enrollment = await Enrollment.findOne({
+  // Check if user is enrolled, create if not
+  let enrollment = await Enrollment.findOne({
     student: req.user._id,
     course: courseId
   });
 
   if (!enrollment) {
-    return res.status(403).json({
-      success: false,
-      message: 'You must be enrolled to access course content'
+    // Auto-enroll user when accessing content
+    enrollment = await Enrollment.create({
+      student: req.user._id,
+      course: courseId
     });
+    console.log(`Auto-enrolled user ${req.user._id} in course ${courseId}`);
   }
 
   // Get course content
@@ -124,24 +126,25 @@ exports.getLessonContent = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Update lesson progress
+  // @desc    Update lesson progress
 // @route   PUT /api/courses/:courseId/content/lessons/:sectionIndex/:lessonIndex/progress
 // @access  Private (enrolled students)
 exports.updateLessonProgress = asyncHandler(async (req, res) => {
   const { courseId, sectionIndex, lessonIndex } = req.params;
   const { watchedDuration, completed } = req.body;
   
-  // Check if user is enrolled
-  const enrollment = await Enrollment.findOne({
+  // Check if user is enrolled (create if not)
+  let enrollment = await Enrollment.findOne({
     student: req.user._id,
     course: courseId
   });
 
   if (!enrollment) {
-    return res.status(403).json({
-      success: false,
-      message: 'You must be enrolled to update progress'
+    enrollment = await Enrollment.create({
+      student: req.user._id,
+      course: courseId
     });
+    console.log(`Auto-created enrollment for user ${req.user._id} course ${courseId}`);
   }
 
   const content = await CourseContent.findOne({ course: courseId });
@@ -149,7 +152,7 @@ exports.updateLessonProgress = asyncHandler(async (req, res) => {
   if (!content || !content.sections[sectionIndex] || !content.sections[sectionIndex].lessons[lessonIndex]) {
     return res.status(404).json({
       success: false,
-      message: 'Lesson not found'
+      message: 'Lesson not found - ensure course content is seeded'
     });
   }
 
@@ -170,7 +173,7 @@ exports.updateLessonProgress = asyncHandler(async (req, res) => {
   const lessonId = `${sectionIndex}-${lessonIndex}`;
   
   // Update lesson progress
-  await progress.updateLessonProgress(lessonId, watchedDuration || 0, completed);
+  await progress.updateLessonProgress(lessonId, watchedDuration || 0, completed || false);
 
   // Calculate total lessons
   let totalLessons = 0;

@@ -133,57 +133,70 @@ exports.deleteUser = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Get user profile with stats
-// @route   GET /api/users/:id/profile
-// @access  Private/Admin or Own Profile
-exports.getUserProfile = asyncHandler(async (req, res) => {
-  // Check authorization
-  if (req.user.id !== req.params.id && req.user.role !== 'admin') {
-    return res.status(403).json({
-      success: false,
-      message: 'Not authorized to access this profile'
-    });
+// @desc    Get user learning stats for profile
+// @route   GET /api/users/:id/stats
+// @access  Private/Own
+exports.getProfileStats = asyncHandler(async (req, res) => {
+  if (req.user.id !== req.params.id) {
+    return res.status(403).json({ success: false, message: 'Own profile only' });
   }
+
+  // Real enrollments
+  const enrollments = await Enrollment.find({ student: req.params.id })
+    .populate('course', 'title category level');
   
-  const user = await User.findById(req.params.id);
-  
-  if (!user) {
-    return res.status(404).json({
-      success: false,
-      message: 'User not found'
-    });
+  // Real activity
+  const activities = await Useractivity.find({ user: req.params.id })
+    .populate('course', 'category');
+
+  // Real calculations
+  const completedCourses = enrollments.filter(e => e.completed).length;
+  const totalEnrollments = enrollments.length;
+  const totalStudyHours = Math.round(activities.reduce((sum, a) => sum + (a.timeSpent || 0), 0) / 60);
+  const avgRating = activities.filter(a => a.rating).reduce((sum, a) => sum + a.rating, 0) / activities.filter(a => a.rating).length || 0;
+
+  // Streak: consecutive days with activity
+  const dates = [...new Set(activities.map(a => a.timestamp.toISOString().split('T')[0]))].sort();
+  let streak = 1, maxStreak = 1;
+  for (let i = 1; i < dates.length; i++) {
+    if (dates[i] === new Date(dates[i-1].getTime() + 86400000).toISOString().split('T')[0]) {
+      streak++;
+      maxStreak = Math.max(maxStreak, streak);
+    } else {
+      streak = 1;
+    }
   }
-  
-  // Get enrollments
-  const enrollments = await Enrollment.find({ user: req.params.id })
-    .populate('course', 'title thumbnail category level');
-  
-  // Get ratings
-  const ratings = await Rating.find({ user: req.params.id })
-    .populate('course', 'title thumbnail');
-  
-  // Get activity metrics
-  const activityMetrics = await Useractivity.getEngagementMetrics(req.params.id, 30);
-  
-  // Calculate stats
-  const stats = {
-    totalEnrollments: enrollments.length,
-    activeEnrollments: enrollments.filter(e => e.status === 'active').length,
-    completedCourses: enrollments.filter(e => e.status === 'completed').length,
-    totalRatings: ratings.length,
-    averageRatingGiven: ratings.length > 0 
-      ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length 
-      : 0,
-    ...activityMetrics
-  };
-  
-  res.status(200).json({
+
+  // Achievements (milestones)
+  const achievements = [
+    totalEnrollments >= 5 && '5+ Courses',
+    totalStudyHours >= 50 && '50+ Hours',
+    completedCourses >= 3 && '3+ Completed',
+    avgRating >= 4.5 && 'Great Learner',
+    maxStreak >= 7 && 'Week Streak'
+  ].filter(Boolean).length;
+
+  // Category breakdown
+  const categoryHours = {};
+  activities.forEach(a => {
+    const cat = a.course?.category || 'Other';
+    categoryHours[cat] = (categoryHours[cat] || 0) + (a.timeSpent || 5); // default 5min
+  });
+
+  res.json({
     success: true,
-    data: {
-      user,
-      stats,
-      recentEnrollments: enrollments.slice(0, 5),
-      recentRatings: ratings.slice(0, 5)
+    stats: {
+      coursesCompleted: completedCourses,
+      totalStudyHours,
+      currentStreak: streak,
+      longestStreak: maxStreak,
+      achievements,
+      avgRating: avgRating.toFixed(1),
+      totalActivities: activities.length,
+      categoryBreakdown: Object.entries(categoryHours)
+        .map(([cat, hrs]) => ({ category: cat, hours: Math.round(hrs/60), percentage: Math.round((hrs / activities.reduce((s, a) => s + (a.timeSpent || 5), 0)) * 100) }))
+        .sort((a, b) => b.hours - a.hours)
+        .slice(0, 4)
     }
   });
 });

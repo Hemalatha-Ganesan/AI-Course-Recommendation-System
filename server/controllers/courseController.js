@@ -1,6 +1,8 @@
 const Course = require('../models/Course');
 const Enrollment = require('../models/Enrollment');
 const Rating = require('../models/Rating');
+const User = require('../models/User');
+const { sendEnrollmentEmail } = require('../utils/email');
 const { asyncHandler } = require('../middleware/errorMiddleware');
 
 const toCourseResponse = (courseDoc, enrollment = null) => {
@@ -18,67 +20,61 @@ const toCourseResponse = (courseDoc, enrollment = null) => {
         ? course.instructor.username || course.instructor.name || 'Instructor'
         : course.instructor,
     progress: enrollment?.progress || 0,
-    completed: enrollment?.completed || false
+    completed: enrollment?.completed || false,
+    lastAccessedAt: enrollment?.lastAccessedAt || null,
+    enrolledAt: enrollment?.enrolledAt || null
   };
 };
 
 // @desc    Get all published courses
 // @route   GET /api/courses
 // @access  Public (optional auth)
-exports.getAllCourses = asyncHandler(async (req, res) => {
-  const { category, level, search, page = 1, limit = 20 } = req.query;
+const getAllCourses = asyncHandler(async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 12;
+  const skip = (page - 1) * limit;
 
-  const query = { isPublished: true };
-
-  if (category) {
-    query.category = category;
-  }
-
-  if (level) {
-    query.level = level;
-  }
-
-  if (search) {
-    query.$or = [
-      { title: { $regex: search, $options: 'i' } },
-      { description: { $regex: search, $options: 'i' } },
-      { category: { $regex: search, $options: 'i' } }
+  const filters = { isPublished: true };
+  if (req.query.category) filters.category = req.query.category;
+  if (req.query.search) {
+    filters.$or = [
+      { title: { $regex: req.query.search, $options: 'i' } },
+      { description: { $regex: req.query.search, $options: 'i' } }
     ];
   }
 
-  const pageNum = Math.max(1, parseInt(page, 10) || 1);
-  const limitNum = Math.max(1, parseInt(limit, 10) || 20);
-  const skip = (pageNum - 1) * limitNum;
+  const coursesPromise = Course.find(filters)
+    .populate('instructor', 'username name')
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
 
-  const [courses, total] = await Promise.all([
-    Course.find(query)
-      .populate('instructor', 'username email')
-      .sort('-createdAt')
-      .skip(skip)
-      .limit(limitNum),
-    Course.countDocuments(query)
-  ]);
+  const total = await Course.countDocuments(filters);
 
-  res.status(200).json({
+  const courses = await coursesPromise;
+
+  res.json({
     success: true,
     count: courses.length,
     total,
-    page: pageNum,
-    pages: Math.ceil(total / limitNum),
-    data: courses.map((course) => toCourseResponse(course))
+    page,
+    pages: Math.ceil(total / limit),
+    data: courses.map(course => toCourseResponse(course))
   });
 });
 
 // @desc    Get single course
 // @route   GET /api/courses/:id
-// @access  Public (optional auth)
-exports.getCourse = asyncHandler(async (req, res) => {
-  const course = await Course.findById(req.params.id).populate(
-    'instructor',
-    'username email'
-  );
+// @access  Public
+const getCourse = asyncHandler(async (req, res) => {
+  const course = await Course.findById(req.params.id)
+    .populate('instructor', 'username name email')
+    .populate({
+      path: 'reviews',
+      populate: { path: 'user', select: 'username' }
+    });
 
-  if (!course) {
+  if (!course || !course.isPublished) {
     return res.status(404).json({
       success: false,
       message: 'Course not found'
@@ -90,58 +86,46 @@ exports.getCourse = asyncHandler(async (req, res) => {
     enrollment = await Enrollment.findOne({
       student: req.user._id,
       course: course._id
-    });
+    }).populate('course', 'title');
   }
 
-  res.status(200).json({
+  res.json({
     success: true,
-    enrolled: Boolean(enrollment),
     data: toCourseResponse(course, enrollment)
+  });
+});
+
+// @desc    Get course categories
+// @route   GET /api/courses/categories
+// @access  Public
+const getCategories = asyncHandler(async (req, res) => {
+  const categories = await Course.distinct('category', { isPublished: true });
+  res.json({
+    success: true,
+    data: categories.sort()
   });
 });
 
 // @desc    Create new course
 // @route   POST /api/courses
 // @access  Private (instructor/admin)
-exports.createCourse = asyncHandler(async (req, res) => {
-  const {
-    title,
-    description,
-    category,
-    level,
-    price,
-    duration,
-    thumbnail,
-    isPublished
-  } = req.body;
-
+const createCourse = asyncHandler(async (req, res) => {
   const course = await Course.create({
-    title,
-    description,
-    category,
-    level,
-    price,
-    duration,
-    thumbnail: thumbnail || '',
-    isPublished: Boolean(isPublished),
-    instructor: req.user._id
+    ...req.body,
+    instructor: req.user._id,
+    enrolledStudents: []
   });
-
-  const populatedCourse = await Course.findById(course._id).populate(
-    'instructor',
-    'username email'
-  );
 
   res.status(201).json({
     success: true,
-    data: toCourseResponse(populatedCourse)
+    data: course
   });
 });
 
 // @desc    Update course
 // @route   PUT /api/courses/:id
 // @access  Private (instructor/admin)
-exports.updateCourse = asyncHandler(async (req, res) => {
+const updateCourse = asyncHandler(async (req, res) => {
   const course = await Course.findById(req.params.id);
 
   if (!course) {
@@ -151,50 +135,27 @@ exports.updateCourse = asyncHandler(async (req, res) => {
     });
   }
 
-  if (
-    req.user.role !== 'admin' &&
-    course.instructor.toString() !== req.user._id.toString()
-  ) {
+  if (course.instructor.toString() !== req.user._id.toString() && 
+      req.user.role !== 'admin') {
     return res.status(403).json({
       success: false,
-      message: 'Not authorized to update this course'
+      message: 'Not authorized'
     });
   }
 
-  const updatableFields = [
-    'title',
-    'description',
-    'category',
-    'level',
-    'price',
-    'duration',
-    'thumbnail',
-    'isPublished'
-  ];
-
-  updatableFields.forEach((field) => {
-    if (req.body[field] !== undefined) {
-      course[field] = req.body[field];
-    }
-  });
-
+  Object.assign(course, req.body);
   await course.save();
 
-  const updatedCourse = await Course.findById(course._id).populate(
-    'instructor',
-    'username email'
-  );
-
-  res.status(200).json({
+  res.json({
     success: true,
-    data: toCourseResponse(updatedCourse)
+    data: course
   });
 });
 
 // @desc    Delete course
 // @route   DELETE /api/courses/:id
 // @access  Private (instructor/admin)
-exports.deleteCourse = asyncHandler(async (req, res) => {
+const deleteCourse = asyncHandler(async (req, res) => {
   const course = await Course.findById(req.params.id);
 
   if (!course) {
@@ -204,33 +165,112 @@ exports.deleteCourse = asyncHandler(async (req, res) => {
     });
   }
 
-  if (
-    req.user.role !== 'admin' &&
-    course.instructor.toString() !== req.user._id.toString()
-  ) {
+  if (course.instructor.toString() !== req.user._id.toString() && 
+      req.user.role !== 'admin') {
     return res.status(403).json({
       success: false,
-      message: 'Not authorized to delete this course'
+      message: 'Not authorized'
     });
   }
 
-  await Promise.all([
-    Enrollment.deleteMany({ course: course._id }),
-    Rating.deleteMany({ course: course._id }),
-    Course.findByIdAndDelete(course._id)
-  ]);
+  course.isPublished = false;
+  course.deleted = true;
+  await course.save();
 
-  res.status(200).json({
+  res.json({
     success: true,
-    message: 'Course deleted successfully'
+    message: 'Course deleted'
   });
 });
 
-// @desc    Enroll user in a course
-// @route   POST /api/courses/:id/enroll
+// @desc    Get user's enrolled courses
+// @route   GET /api/courses/user/enrolled
 // @access  Private
-exports.enrollCourse = asyncHandler(async (req, res) => {
-  const course = await Course.findById(req.params.id);
+const getEnrolledCourses = asyncHandler(async (req, res) => {
+  const enrollments = await Enrollment.find({ student: req.user._id })
+    .populate('course')
+    .sort({ enrolledAt: -1 });
+
+  const courses = enrollments.map(enrollment => 
+    toCourseResponse(enrollment.course, enrollment)
+  );
+
+  res.json({
+    success: true,
+    data: courses
+  });
+});
+
+// @desc    Update course progress
+// @route   PUT /api/courses/:id/progress
+// @access  Private
+const updateProgress = asyncHandler(async (req, res) => {
+  const { progress, completed, lastAccessedAt } = req.body;
+
+  const enrollment = await Enrollment.findOneAndUpdate(
+    { student: req.user._id, course: req.params.id },
+    { progress, completed, lastAccessedAt },
+    { new: true, runValidators: true }
+  );
+
+  if (!enrollment) {
+    return res.status(404).json({
+      success: false,
+      message: 'Enrollment not found'
+    });
+  }
+
+  res.json({
+    success: true,
+    data: enrollment
+  });
+});
+
+// @desc    Get trending courses
+// @route   GET /api/courses/trending
+// @access  Public
+const getTrendingCourses = asyncHandler(async (req, res) => {
+  const pipeline = [
+    { $match: { isPublished: true } },
+    {
+      $addFields: {
+        score: { 
+          $add: [
+            { $size: '$enrolledStudents' },
+            { $avg: { $ifNull: ['$ratings.avgRating', 0] } },
+            { $divide: [{ $size: '$enrolledStudents' }, 10] }
+          ]
+        }
+      }
+    },
+    { $sort: { score: -1, createdAt: -1 } },
+    { $limit: 10 },
+    { $lookup: { from: 'users', localField: 'instructor', foreignField: '_id', as: 'instructor', pipeline: [{ $project: { username: 1, name: 1 } }] } },
+    { $unwind: { path: '$instructor', preserveNullAndEmptyArrays: true } }
+  ];
+
+  const courses = await Course.aggregate(pipeline);
+  
+  res.json({
+    success: true,
+    data: courses.map(course => toCourseResponse(course))
+  });
+});
+
+// @desc    Get total courses count
+// @route   GET /api/courses/count
+// @access  Public
+const getTotalCoursesCount = asyncHandler(async (req, res) => {
+  const count = await Course.countDocuments({ isPublished: true });
+  res.json({
+    success: true,
+    data: count
+  });
+});
+
+// @desc    Enroll user in a course (existing)
+const enrollCourse = asyncHandler(async (req, res) => {
+  const course = await Course.findById(req.params.id).populate('instructor', 'username email');
 
   if (!course || !course.isPublished) {
     return res.status(404).json({
@@ -260,131 +300,32 @@ exports.enrollCourse = asyncHandler(async (req, res) => {
     $addToSet: { enrolledStudents: req.user._id }
   });
 
+  // Send welcome email
+  try {
+    const user = await User.findById(req.user._id).select('username email');
+    await sendEnrollmentEmail(user.email, user.username, toCourseResponse(course));
+    console.log(`📧 Welcome email sent to ${user.email} for \"${course.title}\"`);
+  } catch (emailError) {
+    console.error('Email failed:', emailError.message);
+  }
+
   res.status(201).json({
     success: true,
-    message: 'Enrolled successfully',
+    message: 'Enrolled successfully! Welcome email sent.',
     data: enrollment
   });
 });
 
-// @desc    Get all courses enrolled by current user
-// @route   GET /api/courses/user/enrolled
-// @access  Private
-exports.getEnrolledCourses = asyncHandler(async (req, res) => {
-  const enrollments = await Enrollment.find({ student: req.user._id })
-    .populate({
-      path: 'course',
-      populate: { path: 'instructor', select: 'username email' }
-    })
-    .sort('-updatedAt');
-
-  const courses = enrollments
-    .filter((item) => item.course)
-    .map((item) => toCourseResponse(item.course, item));
-
-  res.status(200).json({
-    success: true,
-    count: courses.length,
-    data: courses,
-    courses
-  });
-});
-
-// @desc    Update course progress for current user
-// @route   PUT /api/courses/:id/progress
-// @access  Private
-exports.updateProgress = asyncHandler(async (req, res) => {
-  const { progress, completed } = req.body;
-
-  const enrollment = await Enrollment.findOne({
-    student: req.user._id,
-    course: req.params.id
-  });
-
-  if (!enrollment) {
-    return res.status(404).json({
-      success: false,
-      message: 'Enrollment not found for this course'
-    });
-  }
-
-  if (progress !== undefined) {
-    const safeProgress = Math.max(0, Math.min(100, Number(progress)));
-    enrollment.progress = Number.isNaN(safeProgress) ? enrollment.progress : safeProgress;
-  }
-
-  if (completed !== undefined) {
-    enrollment.completed = Boolean(completed);
-  }
-
-  if (enrollment.progress >= 100) {
-    enrollment.completed = true;
-  }
-
-  enrollment.completedAt = enrollment.completed ? new Date() : null;
-  enrollment.lastAccessedAt = new Date();
-  await enrollment.save();
-
-  res.status(200).json({
-    success: true,
-    message: 'Progress updated successfully',
-    data: enrollment
-  });
-});
-
-// @desc    Get available categories
-// @route   GET /api/courses/categories
-// @access  Public
-exports.getCategories = asyncHandler(async (req, res) => {
-  const categories = await Course.distinct('category', { isPublished: true });
-
-  res.status(200).json({
-    success: true,
-    count: categories.length,
-    data: categories
-  });
-});
-
-// @desc    Get total courses count
-// @route   GET /api/courses/count
-// @access  Public
-exports.getTotalCoursesCount = asyncHandler(async (req, res) => {
-  const count = await Course.countDocuments({ isPublished: true });
-
-  res.status(200).json({
-    success: true,
-    count
-  });
-});
-
-// @desc    Get trending courses
-// @route   GET /api/courses/trending
-// @access  Public
-exports.getTrendingCourses = asyncHandler(async (req, res) => {
-  const limit = parseInt(req.query.limit, 10) || 10;
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-  let courses = await Course.find({
-    isPublished: true,
-    createdAt: { $gte: thirtyDaysAgo }
-  })
-    .populate('instructor', 'username email')
-    .sort('-rating -numReviews -createdAt')
-    .limit(limit);
-
-  if (!courses.length) {
-    courses = await Course.find({ isPublished: true })
-      .populate('instructor', 'username email')
-      .sort('-rating -numReviews -createdAt')
-      .limit(limit);
-  }
-
-  res.status(200).json({
-    success: true,
-    count: courses.length,
-    data: courses.map((course) => toCourseResponse(course))
-  });
-});
-
-module.exports = exports;
+module.exports = {
+  getAllCourses,
+  getCourse,
+  createCourse,
+  updateCourse,
+  deleteCourse,
+  enrollCourse,
+  getEnrolledCourses,
+  updateProgress,
+  getCategories,
+  getTotalCoursesCount,
+  getTrendingCourses
+};

@@ -1,0 +1,71 @@
+course_title,published_subject,level,price,content_duration,rating,num_reviews,is_paid,published
+"Complete Python Bootcamp: Go from Zero to Hero Programming","Development","Beginner",84.99,22.0,4.6,281896,TRUE,2017-02-11
+"Web Developer Bootcamp with HTML, CSS, JS","Web Development","Beginner",129.99,60.0,4.6,206877,TRUE,2015-09-30
+"The Complete JavaScript Course 2024: From Zero to Expert!","Development","All Levels",119.99,68.0,4.7,111854,TRUE,2015-08-02
+"The Web Developer Bootcamp 2024","Web Development","All Levels",139.99,65.0,4.7,86364,TRUE,2015-09-30
+"Python for Data Science and Machine Learning Bootcamp","Data Science","Intermediate",129.99,25.0,4.6,48818,TRUE,2019-01-11
+"React - The Complete Guide (incl Hooks, React Router, Redux)","Development","All Levels",149.99,48.0,4.7,183542,TRUE,2016-08-15
+"Angular - The Complete Guide (2024 Edition)","Development","Intermediate",179.99,35.0,4.6,72758,TRUE,2016-08-20
+"The Complete 2024 Web Development Bootcamp","Web Development","Beginner",144.99,62.0,4.7,982588,TRUE,2018-10-31
+"Machine Learning A-Z™: AI, Python & R + ChatGPT Prize [2024]","Data Science","Beginner",149.99,43.0,4.5,79385,TRUE,2016-12-28
+"The Complete Node.js Developer Course (3rd Edition)","Backend Development","Intermediate",169.99,34.5,4.7,245873,TRUE,2015-10-02
+"100 Days of Code: The Complete Python Pro Bootcamp","Python","Beginner",124.99,64.0,4.8,390588,TRUE,2020-01-02
+"iOS 13 & Swift 5: Make 15+ Real iOS Apps (2019)","Mobile Development","Intermediate",139.99,33.0,4.8,25166,TRUE,2019-09-25
+"The Complete 2024 Flutter Development Bootcamp with Dart","Mobile Development","Beginner",149.99,28.0,4.7,27464,TRUE,2020-01-22
+"Java 17 Masterclass: +15 Real-World Projects [ NEW 2024 ]","Java","All Levels",129.99,82.0,4.6,20252,TRUE,2021-07-22
+"Automate the Boring Stuff with Python Programming","Python","Beginner",0.0,9.5,4.6,32887,FALSE,2015-11-10
+"Git & GitHub - The Practical Guide","DevOps","Beginner",59.99,4.0,4.7,16088,TRUE,2020-01-10
+"Docker and Kubernetes: The Complete Guide","DevOps","All Levels",149.99,21.5,4.7,57073,TRUE,2019-03-14
+"Python Django - The Practical Guide","Backend Development","Intermediate",119.99,20.0,4.7,6898,TRUE,2020-05-16
+"React Native - The Practical Guide [2024 Edition]","Mobile Development","Intermediate",149.99,18.0,4.7,15117,TRUE,2020-02-19
+"Go: The Complete Developer's Guide (Golang)","Backend Development","Intermediate",109.99,9.0,4.6,22337,TRUE,2017-11-11
+"Understanding TypeScript - 2024 Edition","TypeScript","Intermediate",99.99,15.0,4.6,33864,TRUE,2016-07-31
+"The Modern Angular Bootcamp","Angular","All Levels",149.99,15.0,4.7,372,TRUE,2024-01-01
+"MongoDB - The Complete Developer's Guide 2024","Database","All Levels",129.99,12.0,4.8,14263,TRUE,2016-11-12
+"The Complete SQL Bootcamp 2024: Go from Zero to Hero","Database","Beginner",129.99,9.0,4.7,336033,TRUE,2015-04-13
+"REST APIs with Flask and Python","Backend Development","Intermediate",149.99,12.5,4.7,13000,TRUE,2018-02-22
+"Build 7 RESTful APIs with Python","Backend Development","Intermediate",109.99,6.0,4.5,3000,TRUE,2020-10-10
+"Python REST APIs with Flask, Docker, React","Full Stack","Intermediate",129.99,11.0,4.6,5000,TRUE,2021-03-03
+"The Python Bible™ | Everything You Need to Program in Python","Python","All Levels",199.99,25.0,4.6,8000,TRUE,2019-09-05
+"JavaScript Algorithms and Data Structures Masterclass","Algorithms","Intermediate",119.99,19.0,4.8,17000,TRUE,2020-02-02
+"Dynamic PHP with AJAX & JSON Live Projects","PHP","Intermediate",79.99,7.0,4.5,2000,TRUE,2018-06-15
+"PHP with Laravel for beginners - Become a Master in Laravel","PHP","Beginner",109.99,22.0,4.5,10000,TRUE,2018-05-20
+"Unity Game Development: Create 2D & 3D Games","Game Development","All Levels",149.99,35.0,4.7,25000,TRUE,2020-04-20
+"Unreal Engine 5 C++ Developer: Learn C++ & Make Video Games","Game Development","Intermediate",179.99,40.0,4.7,8000,TRUE,2021-03-15
+"The Ultimate Guide to Game Development with Unity","Game Development","Beginner",139.99,30.0,4.6,15000,TRUE,2017-09-10
+"Learn Blockchain, Solidity, and Full Stack Web3 Development with JavaScript","Blockchain","All Levels",129.99,23.0,4.7,12000,TRUE,2022-01-01
+"Applied Data Science with Python and AWS","Data Science","Advanced",159.99,28.0,4.6,4000,TRUE,2021-05-12
+"Deep Learning Prerequisites: The Numpy Stack in Python","Machine Learning","Beginner",69.99,12.0,4.6,20000,TRUE,2017-11-02
+"Natural Language Processing with Deep Learning in Python","NLP","Advanced",149.99,18.0,4.6,5000,TRUE,2018-01-15
+"Computer Vision: Python OCR & Object Detection Quick Starter","Computer Vision","Intermediate",79.99,8.0,4.6,3000,TRUE,2019-08-20
+"Time Series Analysis, LSTM-Predictive Financial Risk Models in Python","Finance","Advanced",129.99,14.0,4.6,2000,TRUE,2020-02-28
+"The Complete Digital Marketing Course - 12 Courses in 1","Marketing","All Levels",199.99,23.0,4.5,100000,TRUE,2016-05-17
+"Mega Digital Marketing Course A-Z: 32 Courses in 1 + Updates","Marketing","Beginner",279.99,46.0,4.5,55000,TRUE,2016-06-25
+"Facebook Ads & Facebook Marketing MASTERY","Facebook Ads","All Levels",99.99,6.0,4.5,8000,TRUE,2017-03-22
+"The Complete Google Ads & PPC Marketing Course","Google Ads","All Levels",149.99,10.0,4.6,15000,TRUE,2018-07-15
+"Instagram Marketing & Instagram Ads 2024","Instagram","Beginner",89.99,5.0,4.4,12000,TRUE,2019-10-10
+"Digital Marketing - Complete Digital Marketing Expert Course","Digital Marketing","All Levels",129.99,12.0,4.5,25000,TRUE,2020-01-05
+"Facebook Ads Masterclass - All Campaigns, Services & More","Facebook Ads","Intermediate",99.99,8.0,4.6,6000,TRUE,2021-02-18
+"SEO 2024: Complete SEO Training + Asterisk SEO Marketing","SEO","All Levels",149.99,18.0,4.6,12000,TRUE,2020-12-01
+"Copywriting Secrets - How to Write Copy That Sells","Copywriting","All Levels",79.99,7.0,4.5,5000,TRUE,2019-11-11
+"The Complete Copywriting Course","Copywriting","Beginner",99.99,11.0,4.6,3000,TRUE,2020-06-20
+"Financial Accounting - Accounting for Beginners","Accounting","Beginner",69.99,6.0,4.5,15000,TRUE,2016-11-05
+"Introduction to Finance, Accounting, Modeling and Valuation","Finance","All Levels",199.99,25.0,4.6,50000,TRUE,2015-02-24
+"The Complete Financial Analyst Course 2024","Financial Analysis","Intermediate",199.99,22.5,4.6,18000,TRUE,2017-01-22
+"Finance for Non-Finance Professionals & Managers","Finance","Beginner",89.99,7.5,4.5,12000,TRUE,2018-03-15
+"Accounting & Bookkeeping Masterclass","Accounting","All Levels",149.99,15.0,4.6,8000,TRUE,2020-04-01
+"Microsoft Excel - From Beginner to Expert in 6 Hours","Microsoft Excel","All Levels",79.99,6.0,4.6,350000,TRUE,2015-12-12
+"Excel - Microsoft Excel Course Beginner to Expert 2024","Microsoft Excel","All Levels",129.99,11.0,4.6,120000,TRUE,2020-09-01
+"Microsoft Excel Courses 2024 - Complete Excel Training","Microsoft Excel","Beginner",149.99,10.0,4.6,25000,TRUE,2022-01-10
+"Advanced Microsoft Excel","Microsoft Excel","Advanced",99.99,8.0,4.6,10000,TRUE,2016-10-20
+"The Complete Excel Course","Microsoft Excel","All Levels",69.99,5.0,4.5,5000,TRUE,2019-05-15
+"Leadership: Practical Leadership Skills","Leadership","All Levels",79.99,8.0,4.6,15000,TRUE,2017-07-10
+"Management Skills - Team Leadership for High Performance","Management","Intermediate",99.99,4.5,4.6,8000,TRUE,2020-02-05
+"The Complete Management Skills Certification Course","Management","All Levels",149.99,12.0,4.6,20000,TRUE,2018-08-22
+"Emotional Intelligence: Master Your Emotions","Emotional Intelligence","Beginner",69.99,6.0,4.5,10000,TRUE,2019-03-18
+"Project Management Professional Certification Program (PMP)","Project Management","Intermediate",279.99,36.0,4.6,15000,TRUE,2016-09-12
+"Adobe Photoshop CC - Essentials Training Course","Photoshop","Beginner",89.99,11.5,4.6,70000,TRUE,2015-08-25
+"Adobe Photoshop CC - Advanced Training Course","Photoshop","Advanced",129.99,9.5,4.6,25000,TRUE,2015-11-06
+"Photoshop 2024 - From Zero To Pro In 20 Minutes","Photoshop","All Levels",59.99,0.33,4.5,12000,TRUE,2024-01-01
+"Complete Photoshop Mastery Program","Photoshop","All Levels",199.99,20.0,4.6,5000,TRUE,2021-06-10
+"UI/UX Design Bootcamp: Strategy, Prototyping, Figma + more","UI/UX Design","All Levels",149.99,25.0,4.6,8000,TRUE,2022-02-15

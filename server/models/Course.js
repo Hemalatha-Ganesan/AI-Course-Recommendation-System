@@ -58,6 +58,17 @@ const courseSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  whatYouLearn: [{
+    type: String
+  }],
+  requirements: [{
+    type: String
+  }],
+  roadmap: [{
+    title: String,
+    duration: Number,
+    lessons: Number
+  }],
   createdAt: {
     type: Date,
     default: Date.now

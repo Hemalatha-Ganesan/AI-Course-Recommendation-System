@@ -26,7 +26,7 @@ async function importUdemyDataset() {
     console.log(`✓ Using instructor: ${instructor.username}`);
 
     // Path to your CSV file - CHANGE THIS to your file location
-    const csvFilePath = 'C:/Users/HEMALATHA/Downloads/udemy_courses_dataset.csv';
+  const csvFilePath = 'udemy_courses.csv';
     // OR if file is in downloads:
     // const csvFilePath = 'C:/Users/YourUser/Downloads/udemy_courses.csv';
 
@@ -60,7 +60,7 @@ async function importUdemyDataset() {
         duration: parseFloat(row.content_duration) || 5, // default 5 hours
         rating: parseFloat(row.rating) || 0,
         numReviews: parseInt(row.num_reviews) || 0,
-        thumbnail: row.url || '',
+        thumbnail: `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000)}?w=500&fit=crop&ixlib=rb-4.0.3&q=80&category=${encodeURIComponent(category.toLowerCase())}`,
         instructor: instructor._id,
         isPublished: row.is_paid === 'TRUE' || row.is_paid === true,
         enrolledStudents: [],
