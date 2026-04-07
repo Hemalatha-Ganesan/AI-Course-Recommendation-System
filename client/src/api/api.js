@@ -86,8 +86,15 @@ export const contentAPI = {
     API.put(`/courses/${courseId}/content`, { sections }),
 };
 
+// 🧪 QUIZ API
+export const quizzesAPI = {
+  getQuiz: (courseId, lessonId) => API.get(`/quizzes/${courseId}/lessons/${lessonId}`),
+  submitQuiz: (courseId, lessonId, data) => API.post(`/quizzes/${courseId}/lessons/${lessonId}/submit`, data),
+};
+
 // 🎯 RECOMMENDATION API
 export const recommendationAPI = {
+
   getPersonalizedRecommendations: () => API.get('/recommendations/personalized'),
   searchRecommendations: (query, limit = 10, category, difficulty) => 
     API.get('/recommendations/search', { 

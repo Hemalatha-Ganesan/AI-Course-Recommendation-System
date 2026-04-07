@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { contentAPI, courseAPI } from '../api/api';
 import { FaPlay, FaCheckCircle, FaClock, FaBook, FaLink, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import Quiz from '../components/Quiz';
 
 const CourseContent = () => {
   const { courseId } = useParams();
@@ -17,8 +18,6 @@ const CourseContent = () => {
   const [videoProgress, setVideoProgress] = useState(0);
   const [updatingProgress, setUpdatingProgress] = useState(false);
 
-  // FIX 1: Moved fetchCourseContent inside useEffect to fix no-use-before-define
-  // and react-hooks/exhaustive-deps warnings
   useEffect(() => {
     const fetchCourseContent = async () => {
       try {
@@ -53,7 +52,6 @@ const CourseContent = () => {
     fetchCourseContent();
   }, [courseId, navigate]);
 
-  // Fetch current lesson when section/lesson changes
   useEffect(() => {
     if (content && content.sections[currentSectionIndex]) {
       const lesson = content.sections[currentSectionIndex].lessons[currentLessonIndex];
@@ -73,7 +71,7 @@ const CourseContent = () => {
     await updateProgress(true);
   };
 
-  const updateProgress = async (completed = false, watchedDurationOverride = null) => {
+  const updateProgress = async (completed = false, watchedDurationOverride = null, quizScore = 0, quizPassed = false) => {
     setUpdatingProgress(true);
     try {
       const watchedSeconds = watchedDurationOverride !== null 
@@ -86,7 +84,9 @@ const CourseContent = () => {
         currentLessonIndex,
         {
           watchedDuration: Math.floor(watchedSeconds),
-          completed
+          completed,
+          quizScore,
+          quizPassed
         }
       );
       
@@ -203,7 +203,6 @@ const CourseContent = () => {
                   ></iframe>
                 ) : (
                   <>
-                    {/* FIX 2: Removed duplicate controls, onTimeUpdate, onEnded props */}
                     <video
                       key={`${currentSectionIndex}-${currentLessonIndex}`}
                       src={currentLesson.videoUrl}
@@ -215,7 +214,6 @@ const CourseContent = () => {
                       Your browser does not support video playback.
                     </video>
                     
-                    {/* Progress overlay */}
                     <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
                       <div 
                         className="h-full bg-purple-500"
@@ -282,8 +280,29 @@ const CourseContent = () => {
               </div>
             </div>
 
+            {/* Quiz Section */}
+            {currentLesson?.quiz && !isLessonCompleted(currentSectionIndex, currentLessonIndex) && (
+              <Quiz 
+                courseId={courseId} 
+                lessonId={`${currentSectionIndex}-${currentLessonIndex}`}
+                onComplete={(passed, score) => {
+                  updateProgress(true, null, score, passed);
+                }} 
+              />
+            )}
+
+            {/* Quiz Completed Indicator */}
+            {isLessonCompleted(currentSectionIndex, currentLessonIndex) && currentLesson?.quiz && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
+                <div className="flex items-center gap-2 text-green-700">
+                  <FaCheckCircle />
+                  <span>Quiz passed! Lesson completed.</span>
+                </div>
+              </div>
+            )}
+
             {/* Learning Materials */}
-            {currentLesson && (currentLesson.content || currentLesson.materials?.length > 0 || currentLesson.referenceLinks?.length > 0) && (
+            {(currentLesson?.content || currentLesson?.materials?.length > 0 || currentLesson?.referenceLinks?.length > 0) && (
               <div className="bg-white rounded-lg shadow mt-4 p-6">
                 <h3 className="text-lg font-semibold mb-4">Learning Materials</h3>
                 
@@ -410,3 +429,4 @@ const CourseContent = () => {
 };
 
 export default CourseContent;
+

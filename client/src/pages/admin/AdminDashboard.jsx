@@ -135,11 +135,12 @@ const AdminDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
           
           {/* Stats */}
-          <StatCard 
+<StatCard 
             title="Total Students" 
-            value={stats.totalUsers || 0} 
-            subtitle={`${stats.activeUsers || 0} active`}
+            value={stats.totalStudents || 0} 
+            subtitle={`${stats.totalActiveStudents || stats.activeUsers || 0} active`}
             icon="👥"
+
             change={change}
             color="from-blue-500 via-indigo-500 to-purple-500"
           />
@@ -149,6 +150,9 @@ const AdminDashboard = () => {
             value={stats.totalCourses || 0} 
             subtitle={`${stats.activeCourses || 0} active`}
             icon="📚"
+            onClick={() => navigate('/admin/courses')}
+            className="cursor-pointer hover:shadow-xl"
+
             change={5}
             color="from-emerald-500 via-teal-500 to-green-500"
           />
