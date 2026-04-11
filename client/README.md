@@ -18,7 +18,6 @@ This project integrates the **MERN stack** with a **Machine Learning recommendat
 * **API Communication:** REST APIs (JSON)
 
 ---
-
 ## 📁 Project Folder Structure
 
 ```
