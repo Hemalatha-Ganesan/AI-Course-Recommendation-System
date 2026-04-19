@@ -41,7 +41,7 @@ const Login = () => {
   };
 
   const testAccounts = [
-    { role: 'admin', email: 'hemalatha080705@gmail.com', password: 'HemaG', label: 'Admin' },
+    { role: 'admin', email: 'admin@test.com', password: 'admin123', label: 'Admin' },
     { role: 'user', email: 'user@test.com', password: 'user123', label: 'Student' }
   ];
 

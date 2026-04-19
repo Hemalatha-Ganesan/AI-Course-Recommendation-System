@@ -24,10 +24,10 @@ const Footer = () => {
         <div className="footer-section">
           <h4>Follow Us</h4>
           <div className="social-icons">
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+            <a href="https://github.com/Hemalatha-Ganesan" target="_blank" rel="noopener noreferrer">
               <FaGithub />
             </a>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
+            <a href="https://www.linkedin.com/in/hemalatha-ganesan-b30a56273/" target="_blank" rel="noopener noreferrer">
               <FaLinkedin />
             </a>
             <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
